@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LoyerMboa – Trouvez votre chez-vous</title>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green: #1A7A4A;
+    --green-dark: #0F5C35;
+    --green-light: #E8F5EE;
+    --green-mid: #2E9C60;
+    --accent: #F5A623;
+    --accent-light: #FEF3DC;
+    --red: #E53935;
+    --bg: #F7F8F6;
+    --white: #FFFFFF;
+    --text: #1A1E1B;
+    --text-muted: #6B7A6E;
+    --border: #D8E0DA;
+    --card-shadow: 0 2px 12px rgba(26,122,74,0.08);
+    --card-shadow-hover: 0 8px 28px rgba(26,122,74,0.18);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+  h1,h2,h3,h4,h5 { font-family:'Syne',sans-serif; line-height:1.2; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:#f1f1f1; }
+  ::-webkit-scrollbar-thumb { background:var(--green); border-radius:3px; }
+
+  /* NAV */
+  .nav { background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+  .nav-inner { max-width:1200px; margin:0 auto; padding:0 24px; height:64px; display:flex; align-items:center; gap:16px; }
+  .nav-logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:var(--green); text-decoration:none; display:flex; align-items:center; gap:8px; }
+  .nav-logo span { color:var(--accent); }
+  .nav-links { display:flex; gap:4px; margin-left:auto; }
+  .nav-link { padding:8px 14px; border-radius:var(--radius-sm); font-size:0.9rem; font-weight:500; cursor:pointer; border:none; background:none; color:var(--text-muted); transition:all .2s; }
+  .nav-link:hover,.nav-link.active { background:var(--green-light); color:var(--green); }
+  .nav-btn { padding:9px 18px; border-radius:var(--radius-sm); font-size:0.9rem; font-weight:600; cursor:pointer; transition:all .2s; border:none; font-family:'DM Sans',sans-serif; }
+  .btn-outline { background:none; border:1.5px solid var(--green); color:var(--green); }
+  .btn-outline:hover { background:var(--green); color:#fff; }
+  .btn-primary { background:var(--green); color:#fff; }
+  .btn-primary:hover { background:var(--green-dark); }
+  .btn-accent { background:var(--accent); color:#fff; }
+  .btn-accent:hover { background:#d4901d; }
+  .nav-user { display:flex; align-items:center; gap:8px; font-size:0.9rem; font-weight:500; }
+  .nav-avatar { width:34px; height:34px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; }
+
+  /* HERO */
+  .hero { background:linear-gradient(135deg, var(--green-dark) 0%, var(--green) 60%, var(--green-mid) 100%); padding:72px 24px 80px; position:relative; overflow:hidden; }
+  .hero::before { content:''; position:absolute; top:-80px; right:-80px; width:400px; height:400px; border-radius:50%; background:rgba(255,255,255,0.04); }
+  .hero::after { content:''; position:absolute; bottom:-120px; left:-60px; width:320px; height:320px; border-radius:50%; background:rgba(245,166,35,0.08); }
+  .hero-inner { max-width:800px; margin:0 auto; text-align:center; position:relative; }
+  .hero-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:5px 14px; border-radius:20px; font-size:0.82rem; font-weight:500; margin-bottom:20px; }
+  .hero h1 { font-size:clamp(2rem,5vw,3.4rem); color:#fff; font-weight:800; margin-bottom:16px; }
+  .hero h1 em { color:var(--accent); font-style:normal; }
+  .hero p { color:rgba(255,255,255,0.82); font-size:1.05rem; margin-bottom:36px; max-width:520px; margin-left:auto; margin-right:auto; }
+  .hero-search { background:#fff; border-radius:var(--radius); padding:20px; display:flex; flex-wrap:wrap; gap:12px; box-shadow:0 16px 48px rgba(0,0,0,0.18); }
+  .hero-search select, .hero-search input { flex:1; min-width:140px; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--text); background:#fff; outline:none; }
+  .hero-search select:focus, .hero-search input:focus { border-color:var(--green); }
+  .hero-search button { padding:11px 24px; border-radius:var(--radius-sm); background:var(--green); color:#fff; border:none; font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .hero-search button:hover { background:var(--green-dark); }
+  .hero-stats { display:flex; gap:32px; justify-content:center; margin-top:36px; flex-wrap:wrap; }
+  .hero-stat { color:rgba(255,255,255,0.9); text-align:center; }
+  .hero-stat strong { display:block; font-family:'Syne',sans-serif; font-size:1.6rem; font-weight:800; color:#fff; }
+  .hero-stat span { font-size:0.82rem; color:rgba(255,255,255,0.65); }
+
+  /* SECTIONS */
+  .section { max-width:1200px; margin:0 auto; padding:56px 24px; }
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; }
+  .section-title { font-size:1.6rem; font-weight:800; }
+  .section-title span { color:var(--green); }
+  .see-all { font-size:0.9rem; color:var(--green); font-weight:600; cursor:pointer; border:none; background:none; }
+  .see-all:hover { text-decoration:underline; }
+
+  /* PROPERTY CARDS */
+  .grid-3 { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:20px; }
+  .prop-card { background:var(--white); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); transition:all .25s; cursor:pointer; }
+  .prop-card:hover { transform:translateY(-4px); box-shadow:var(--card-shadow-hover); }
+  .prop-img { height:180px; background:var(--green-light); position:relative; overflow:hidden; }
+  .prop-img-placeholder { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:2.5rem; }
+  .prop-badge { position:absolute; top:10px; left:10px; background:var(--green); color:#fff; padding:3px 10px; border-radius:20px; font-size:0.75rem; font-weight:600; font-family:'Syne',sans-serif; }
+  .prop-fav { position:absolute; top:10px; right:10px; width:32px; height:32px; background:rgba(255,255,255,0.9); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; transition:all .2s; }
+  .prop-fav:hover { background:#fff; transform:scale(1.1); }
+  .prop-fav.active { background:#fff; }
+  .prop-verified { position:absolute; bottom:10px; right:10px; background:rgba(26,122,74,0.92); color:#fff; padding:3px 10px; border-radius:20px; font-size:0.72rem; display:flex; align-items:center; gap:4px; }
+  .prop-body { padding:14px 16px; }
+  .prop-price { font-family:'Syne',sans-serif; font-size:1.15rem; font-weight:800; color:var(--green); margin-bottom:4px; }
+  .prop-price span { font-size:0.8rem; color:var(--text-muted); font-family:'DM Sans',sans-serif; font-weight:400; }
+  .prop-title { font-size:0.95rem; font-weight:600; margin-bottom:6px; }
+  .prop-loc { font-size:0.85rem; color:var(--text-muted); display:flex; align-items:center; gap:4px; margin-bottom:10px; }
+  .prop-meta { display:flex; gap:12px; font-size:0.82rem; color:var(--text-muted); border-top:1px solid var(--border); padding-top:10px; }
+  .prop-meta span { display:flex; align-items:center; gap:4px; }
+  .prop-stars { display:flex; gap:2px; margin-top:4px; }
+
+  /* FILTERS */
+  .filters { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:24px; }
+  .filter-select { padding:8px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:0.9rem; color:var(--text); background:#fff; outline:none; cursor:pointer; }
+  .filter-select:focus { border-color:var(--green); }
+  .filter-label { font-size:0.85rem; color:var(--text-muted); font-weight:500; }
+  .filter-reset { margin-left:auto; font-size:0.85rem; color:var(--red); cursor:pointer; background:none; border:none; font-family:'DM Sans',sans-serif; font-weight:500; }
+  .filter-count { background:var(--green); color:#fff; border-radius:20px; padding:2px 10px; font-size:0.8rem; font-family:'Syne',sans-serif; font-weight:700; }
+
+  /* MODAL */
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:flex; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(2px); }
+  .modal { background:#fff; border-radius:var(--radius); width:100%; max-width:680px; max-height:90vh; overflow-y:auto; position:relative; }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#fff; z-index:1; }
+  .modal-header h3 { font-size:1.15rem; font-weight:800; }
+  .modal-close { width:32px; height:32px; border-radius:50%; background:var(--bg); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+  .modal-body { padding:24px; }
+  .prop-detail-img { height:240px; background:var(--green-light); border-radius:var(--radius-sm); margin-bottom:20px; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; }
+  .prop-detail-price { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color:var(--green); }
+  .prop-detail-title { font-size:1.2rem; font-weight:700; margin:4px 0; }
+  .prop-detail-meta { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; }
+  .prop-detail-chip { background:var(--green-light); color:var(--green); padding:5px 12px; border-radius:20px; font-size:0.83rem; font-weight:600; display:flex; align-items:center; gap:5px; }
+  .prop-detail-desc { font-size:0.95rem; color:var(--text-muted); line-height:1.7; margin:12px 0; }
+  .contact-btns { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .contact-btn { flex:1; min-width:130px; padding:12px 16px; border-radius:var(--radius-sm); border:none; font-family:'DM Sans',sans-serif; font-weight:600; font-size:0.92rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .2s; }
+  .contact-phone { background:#E8F5EE; color:var(--green); }
+  .contact-phone:hover { background:var(--green); color:#fff; }
+  .contact-wa { background:#E7F8EE; color:#128C7E; }
+  .contact-wa:hover { background:#128C7E; color:#fff; }
+  .contact-msg { background:var(--accent-light); color:#8a5a00; }
+  .contact-msg:hover { background:var(--accent); color:#fff; }
+  .landlord-row { display:flex; align-items:center; gap:12px; background:var(--bg); border-radius:var(--radius-sm); padding:12px 16px; margin-top:16px; }
+  .landlord-avatar { width:42px; height:42px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; }
+  .landlord-info { flex:1; }
+  .landlord-name { font-weight:600; font-size:0.95rem; }
+  .landlord-tag { font-size:0.8rem; color:var(--text-muted); }
+  .stars-row { display:flex; gap:3px; color:var(--accent); font-size:1.1rem; }
+  .review-item { border:1px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; margin-top:10px; }
+  .review-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .review-avatar { width:34px; height:34px; border-radius:50%; background:var(--green-light); color:var(--green); display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; }
+  .review-name { font-weight:600; font-size:0.9rem; }
+  .review-date { font-size:0.78rem; color:var(--text-muted); margin-left:auto; }
+  .review-text { font-size:0.88rem; color:var(--text-muted); line-height:1.6; }
+
+  /* AUTH MODAL */
+  .auth-modal { max-width:420px; }
+  .auth-tabs { display:flex; background:var(--bg); border-radius:var(--radius-sm); padding:4px; margin-bottom:20px; }
+  .auth-tab { flex:1; padding:9px; text-align:center; font-family:'DM Sans',sans-serif; font-weight:600; font-size:0.9rem; cursor:pointer; border:none; background:none; border-radius:6px; transition:all .2s; color:var(--text-muted); }
+  .auth-tab.active { background:#fff; color:var(--green); box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+  .form-group { margin-bottom:14px; }
+  .form-label { display:block; font-size:0.85rem; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .form-input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--text); outline:none; transition:border .2s; }
+  .form-input:focus { border-color:var(--green); }
+  .form-select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--text); background:#fff; outline:none; }
+  .form-select:focus { border-color:var(--green); }
+  .form-textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'DM Sans',sans-serif; font-size:0.95rem; color:var(--text); resize:vertical; min-height:100px; outline:none; }
+  .form-textarea:focus { border-color:var(--green); }
+  .role-selector { display:flex; gap:10px; }
+  .role-option { flex:1; padding:12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); text-align:center; cursor:pointer; transition:all .2s; }
+  .role-option.selected { border-color:var(--green); background:var(--green-light); }
+  .role-option-icon { font-size:1.4rem; margin-bottom:4px; }
+  .role-option-label { font-size:0.85rem; font-weight:600; color:var(--text); }
+  .form-btn { width:100%; padding:13px; background:var(--green); color:#fff; border:none; border-radius:var(--radius-sm); font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; cursor:pointer; margin-top:6px; transition:all .2s; }
+  .form-btn:hover { background:var(--green-dark); }
+  .form-error { background:#FEE2E2; color:#B91C1C; border-radius:var(--radius-sm); padding:10px 14px; font-size:0.88rem; margin-bottom:12px; }
+  .form-success { background:#D1FAE5; color:#065F46; border-radius:var(--radius-sm); padding:10px 14px; font-size:0.88rem; margin-bottom:12px; }
+
+  /* DASHBOARD */
+  .dash-layout { display:flex; min-height:calc(100vh - 64px); }
+  .dash-sidebar { width:230px; background:var(--white); border-right:1px solid var(--border); padding:24px 12px; flex-shrink:0; }
+  .dash-sidebar-title { font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; padding:0 12px; margin-bottom:8px; }
+  .dash-nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-sm); font-size:0.92rem; font-weight:500; cursor:pointer; border:none; background:none; width:100%; color:var(--text-muted); transition:all .2s; margin-bottom:2px; }
+  .dash-nav-item:hover, .dash-nav-item.active { background:var(--green-light); color:var(--green); }
+  .dash-content { flex:1; padding:28px 32px; overflow-y:auto; }
+  .dash-header { margin-bottom:24px; }
+  .dash-header h2 { font-size:1.5rem; font-weight:800; }
+  .dash-header p { color:var(--text-muted); font-size:0.92rem; }
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+  .stat-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+  .stat-card-value { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color:var(--green); }
+  .stat-card-label { font-size:0.82rem; color:var(--text-muted); margin-top:2px; }
+  .stat-card-delta { font-size:0.78rem; color:#16A34A; margin-top:4px; font-weight:600; }
+  .data-table { width:100%; border-collapse:collapse; }
+  .data-table th { padding:10px 14px; text-align:left; font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; border-bottom:2px solid var(--border); }
+  .data-table td { padding:12px 14px; font-size:0.9rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .data-table tr:hover td { background:var(--bg); }
+  .status-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:0.78rem; font-weight:600; }
+  .status-verified { background:#D1FAE5; color:#065F46; }
+  .status-pending { background:#FEF3C7; color:#92400E; }
+  .status-rejected { background:#FEE2E2; color:#991B1B; }
+  .table-action { background:none; border:none; cursor:pointer; padding:5px 8px; border-radius:5px; font-size:0.82rem; color:var(--green); font-weight:600; }
+  .table-action.del { color:var(--red); }
+  .table-action:hover { background:var(--bg); }
+
+  /* MAP PREVIEW */
+  .map-section { background:var(--green-dark); padding:56px 0; }
+  .map-inner { max-width:1200px; margin:0 auto; padding:0 24px; display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:center; }
+  .map-text h2 { font-size:1.8rem; font-weight:800; color:#fff; margin-bottom:12px; }
+  .map-text p { color:rgba(255,255,255,0.75); line-height:1.7; margin-bottom:20px; }
+  .map-canvas { background:#1A3D2C; border-radius:var(--radius); height:320px; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .map-grid { position:absolute; inset:0; opacity:.15; }
+  .map-pin { position:absolute; background:var(--accent); color:#fff; border-radius:50% 50% 50% 0; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; transform:rotate(-45deg); cursor:pointer; transition:all .2s; border:2px solid #fff; }
+  .map-pin:hover { transform:rotate(-45deg) scale(1.2); }
+  .map-pin-inner { transform:rotate(45deg); font-size:0.7rem; }
+  .map-label { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:rgba(255,255,255,0.2); font-family:'Syne',sans-serif; font-size:1rem; font-weight:700; text-align:center; }
+
+  /* TESTIMONIALS */
+  .testi-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+  .testi-text { font-size:0.95rem; color:var(--text-muted); line-height:1.7; margin-bottom:16px; font-style:italic; }
+  .testi-author { display:flex; align-items:center; gap:12px; }
+  .testi-avatar { width:38px; height:38px; border-radius:50%; background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; }
+  .testi-name { font-weight:700; font-size:0.9rem; }
+  .testi-role { font-size:0.8rem; color:var(--text-muted); }
+
+  /* FOOTER */
+  .footer { background:var(--text); color:rgba(255,255,255,0.7); padding:48px 24px 24px; }
+  .footer-inner { max-width:1200px; margin:0 auto; }
+  .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:40px; margin-bottom:40px; }
+  .footer-brand { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:800; color:#fff; margin-bottom:10px; }
+  .footer-brand span { color:var(--accent); }
+  .footer-desc { font-size:0.88rem; line-height:1.7; }
+  .footer-col h4 { font-family:'Syne',sans-serif; color:#fff; font-size:0.9rem; font-weight:700; margin-bottom:12px; }
+  .footer-link { display:block; font-size:0.86rem; margin-bottom:7px; cursor:pointer; color:rgba(255,255,255,0.6); }
+  .footer-link:hover { color:#fff; }
+  .footer-bottom { border-top:1px solid rgba(255,255,255,0.1); padding-top:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  .footer-copy { font-size:0.82rem; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:#fff; padding:12px 18px; border-radius:var(--radius-sm); font-size:0.9rem; z-index:999; box-shadow:0 8px 24px rgba(0,0,0,0.3); display:flex; align-items:center; gap:10px; animation:slideUp .3s ease; }
+  .toast.success { background:var(--green); }
+  .toast.error { background:var(--red); }
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+
+  /* EMPTY STATE */
+  .empty-state { text-align:center; padding:48px 24px; }
+  .empty-state-icon { font-size:3rem; margin-bottom:12px; }
+  .empty-state h3 { font-size:1.2rem; font-weight:700; margin-bottom:8px; }
+  .empty-state p { color:var(--text-muted); font-size:0.92rem; }
+
+  /* PAGINATION */
+  .pagination { display:flex; gap:6px; justify-content:center; margin-top:28px; }
+  .page-btn { width:36px; height:36px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:#fff; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.9rem; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+  .page-btn:hover,.page-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .footer-grid { grid-template-columns:1fr 1fr; }
+    .map-inner { grid-template-columns:1fr; }
+    .map-canvas { height:240px; }
+    .dash-sidebar { display:none; }
+    .dash-content { padding:16px; }
+  }
+  @media(max-width:600px){
+    .hero { padding:48px 16px 56px; }
+    .hero-stats { gap:20px; }
+    .footer-grid { grid-template-columns:1fr; gap:24px; }
+    .nav-links { display:none; }
+    .hero-search { padding:14px; }
+  }
+  .chip { display:inline-flex; align-items:center; gap:5px; background:var(--green-light); color:var(--green); padding:4px 12px; border-radius:20px; font-size:0.8rem; font-weight:600; }
+  .chip.accent { background:var(--accent-light); color:#8a5a00; }
+  .divider { height:1px; background:var(--border); margin:20px 0; }
+  .flex-between { display:flex; justify-content:space-between; align-items:center; }
+  .flex-center { display:flex; align-items:center; gap:8px; }
+  .text-muted { color:var(--text-muted); font-size:0.9rem; }
+  .mt-1 { margin-top:8px; } .mt-2 { margin-top:16px; } .mt-3 { margin-top:24px; }
+  .mb-1 { margin-bottom:8px; } .mb-2 { margin-bottom:16px; }
+  .badge-new { background:var(--accent); color:#fff; font-size:0.7rem; font-weight:700; padding:1px 7px; border-radius:20px; font-family:'Syne',sans-serif; }
+  .listing-form { max-width:560px; }
+  .listing-form .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .upload-zone { border:2px dashed var(--border); border-radius:var(--radius-sm); padding:28px; text-align:center; cursor:pointer; transition:all .2s; }
+  .upload-zone:hover { border-color:var(--green); background:var(--green-light); }
+  .upload-icon { font-size:2rem; margin-bottom:8px; }
+  .upload-text { font-size:0.9rem; color:var(--text-muted); }
+  .fav-indicator { color:var(--red); }
+  .notif-dot { width:8px; height:8px; background:var(--red); border-radius:50%; position:absolute; top:2px; right:2px; }
+  .skeleton { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, createContext, useContext, useCallback } = React;
+
+// ===================== DATA =====================
+const QUARTERS = ['Bastos','Melen','Omnisport','Nlongkak','Mvog-Mbi','Santa Barbara','Mimboman','Nkoldongo','Essos','Obili','Biyem-Assi','Mendong','Ekounou','Nsimeyong','Mvog-Betsi'];
+const CITIES = ['Yaoundé','Douala','Bafoussam','Bamenda','Garoua'];
+const TYPES = ['Appartement','Studio','Villa','Chambre','Duplex','Bureau'];
+
+const PROPS = [
+  {id:1,title:'Appartement moderne 2 chambres',type:'Appartement',rent:150000,quarter:'Bastos',city:'Yaoundé',bedrooms:2,bathrooms:1,furnished:true,landlordId:2,landlordName:'Jean-Pierre Nkomo',landlordPhone:'699123456',isVerified:true,rating:4.6,reviews:12,emoji:'🏢',desc:'Bel appartement moderne au cœur de Bastos. Entièrement meublé, sécurisé, avec parking privé et groupe électrogène. Idéal pour professionnels ou familles.',createdAt:'2024-01-15',lat:3.866,lng:11.513},
+  {id:2,title:'Studio économique tout équipé',type:'Studio',rent:80000,quarter:'Melen',city:'Yaoundé',bedrooms:1,bathrooms:1,furnished:true,landlordId:3,landlordName:'Marie Atangana',landlordPhone:'677654321',isVerified:true,rating:4.2,reviews:8,emoji:'🏠',desc:'Studio fonctionnel et bien situé à Melen. Eau et électricité disponibles. Proche des universités et des transports en commun.',createdAt:'2024-01-20',lat:3.872,lng:11.520},
+  {id:3,title:'Villa 4 chambres avec jardin',type:'Villa',rent:380000,quarter:'Santa Barbara',city:'Yaoundé',bedrooms:4,bathrooms:3,furnished:false,landlordId:2,landlordName:'Jean-Pierre Nkomo',landlordPhone:'699123456',isVerified:true,rating:4.8,reviews:5,emoji:'🏡',desc:'Magnifique villa dans la résidence Santa Barbara. Grand jardin, parking pour 3 voitures, cuisine américaine, terrasse avec vue panoramique.',createdAt:'2024-01-25',lat:3.860,lng:11.508},
+  {id:4,title:'Appartement 3 chambres climatisé',type:'Appartement',rent:220000,quarter:'Omnisport',city:'Yaoundé',bedrooms:3,bathrooms:2,furnished:true,landlordId:4,landlordName:'Paul Essono',landlordPhone:'655987654',isVerified:false,rating:3.9,reviews:3,emoji:'🏗️',desc:'Grand appartement climatisé proche du stade Omnisport. Meublé avec goût, gardien 24h/24, eau chaude, salle de bain moderne.',createdAt:'2024-02-01',lat:3.858,lng:11.523},
+  {id:5,title:'Chambre meublée à partager',type:'Chambre',rent:35000,quarter:'Mvog-Mbi',city:'Yaoundé',bedrooms:1,bathrooms:1,furnished:true,landlordId:3,landlordName:'Marie Atangana',landlordPhone:'677654321',isVerified:true,rating:4.0,reviews:15,emoji:'🛏️',desc:'Chambre propre dans appartement partagé avec 2 autres locataires sérieux. Cuisine équipée commune, WiFi inclus, accès facile au marché.',createdAt:'2024-02-05',lat:3.876,lng:11.515},
+  {id:6,title:'Duplex 5 pièces résidence fermée',type:'Duplex',rent:450000,quarter:'Bastos',city:'Yaoundé',bedrooms:5,bathrooms:3,furnished:true,landlordId:4,landlordName:'Paul Essono',landlordPhone:'655987654',isVerified:true,rating:4.9,reviews:7,emoji:'🏰',desc:'Somptueux duplex dans résidence sécurisée de Bastos. Standing élevé, groupe électrogène, eau permanente, piscine commune, parking souterrain.',createdAt:'2024-02-10',lat:3.863,lng:11.511},
+  {id:7,title:'Appartement 2 chambres Nlongkak',type:'Appartement',rent:130000,quarter:'Nlongkak',city:'Yaoundé',bedrooms:2,bathrooms:1,furnished:false,landlordId:5,landlordName:'Célestine Fouda',landlordPhone:'690456123',isVerified:true,rating:4.3,reviews:9,emoji:'🏢',desc:'Bel appartement non meublé dans le quartier calme de Nlongkak. Proche des marchés, bon accès routier, eau et électricité stables.',createdAt:'2024-02-14',lat:3.869,lng:11.517},
+  {id:8,title:'Studio neuf Biyem-Assi',type:'Studio',rent:65000,quarter:'Biyem-Assi',city:'Yaoundé',bedrooms:1,bathrooms:1,furnished:true,landlordId:5,landlordName:'Célestine Fouda',landlordPhone:'690456123',isVerified:false,rating:3.7,reviews:2,emoji:'🏠',desc:'Studio tout neuf dans immeuble récent à Biyem-Assi. Finitions modernes, ascenseur, interphone. Idéal pour étudiant ou jeune professionnel.',createdAt:'2024-02-18',lat:3.854,lng:11.509},
+];
+
+const REVIEWS = {
+  1:[{id:1,name:'Alphonse K.',rating:5,comment:'Très bon appartement, propriétaire réactif. Je recommande vivement!',date:'2024-01-28'},{id:2,name:'Sylvie M.',rating:4,comment:'Logement conforme aux photos. Quartier calme et bien desservi.',date:'2024-02-10'}],
+  3:[{id:1,name:'Robert T.',rating:5,comment:'Villa de rêve! Tout est parfait, le jardin est magnifique.',date:'2024-02-01'}],
+};
+
+const CURRENT_USER = null;
+
+// ===================== CONTEXT =====================
+const AppCtx = createContext({});
+
+function AppProvider({children}) {
+  const [user, setUser] = useState(null);
+  const [favorites, setFavorites] = useState([1,3]);
+  const [toast, setToast] = useState(null);
+  const [page, setPage] = useState('home');
+  const [showAuth, setShowAuth] = useState(false);
+  const [selectedProp, setSelectedProp] = useState(null);
+  const [showAddListing, setShowAddListing] = useState(false);
+  const [listings, setListings] = useState(PROPS);
+  const [notifications] = useState(3);
+
+  const showToast = useCallback((msg, type='success') => {
+    setToast({msg, type});
+    setTimeout(()=>setToast(null), 3000);
+  }, []);
+
+  const toggleFav = (id) => {
+    if(!user) { setShowAuth(true); return; }
+    setFavorites(f => f.includes(id) ? f.filter(x=>x!==id) : [...f, id]);
+    showToast(favorites.includes(id) ? 'Retiré des favoris' : 'Ajouté aux favoris ❤️');
+  };
+
+  const login = (userData) => { setUser(userData); setShowAuth(false); showToast(`Bienvenue, ${userData.name}! 🎉`); };
+  const logout = () => { setUser(null); setPage('home'); showToast('Déconnecté avec succès'); };
+  const addListing = (listing) => { setListings(l=>[...l, {...listing, id:l.length+1, landlordId:user?.id, landlordName:user?.name, landlordPhone:user?.phone, isVerified:false, rating:0, reviews:0, emoji:'🏢', createdAt:new Date().toISOString().split('T')[0]}]); showToast('Annonce publiée! En attente de vérification.'); setShowAddListing(false); };
+  const deleteListing = (id) => { setListings(l=>l.filter(x=>x.id!==id)); showToast('Annonce supprimée'); };
+
+  return <AppCtx.Provider value={{user,favorites,toggleFav,showToast,page,setPage,showAuth,setShowAuth,selectedProp,setSelectedProp,showAddListing,setShowAddListing,listings,addListing,deleteListing,login,logout,notifications}}>
+    {children}
+    {toast && <div className={`toast ${toast.type}`}>{toast.type==='success'?'✓':'✗'} {toast.msg}</div>}
+  </AppCtx.Provider>;
+}
+
+// ===================== NAV =====================
+function Nav() {
+  const {user,page,setPage,setShowAuth,logout,notifications} = useContext(AppCtx);
+  return <nav className="nav">
+    <div className="nav-inner">
+      <span className="nav-logo" onClick={()=>setPage('home')} style={{cursor:'pointer'}}>🏠 Loyer<span>Mboa</span></span>
+      <div className="nav-links">
+        <button className={`nav-link${page==='listings'?' active':''}`} onClick={()=>setPage('listings')}>Annonces</button>
+        <button className={`nav-link${page==='map'?' active':''}`} onClick={()=>setPage('map')}>Carte</button>
+        {user && <button className={`nav-link${page==='favorites'?' active':''}`} onClick={()=>setPage('favorites')}>Favoris</button>}
+        {user && <button className={`nav-link${page==='dashboard'?' active':''}`} onClick={()=>setPage('dashboard')}>Tableau de bord</button>}
+      </div>
+      <div style={{marginLeft:'auto', display:'flex', gap:'10px', alignItems:'center'}}>
+        {user ? <>
+          <div style={{position:'relative'}}>
+            <div className="nav-avatar" title="Notifications">🔔</div>
+            {notifications>0 && <div className="notif-dot"></div>}
+          </div>
+          <div className="nav-avatar" onClick={()=>setPage('dashboard')} title={user.name}>{user.name[0]}</div>
+          <button className="nav-btn btn-outline" onClick={logout}>Déconnexion</button>
+        </> : <>
+          <button className="nav-btn btn-outline" onClick={()=>setShowAuth('login')}>Connexion</button>
+          <button className="nav-btn btn-primary" onClick={()=>setShowAuth('register')}>S'inscrire</button>
+        </>}
+      </div>
+    </div>
+  </nav>;
+}
+
+// ===================== STAR RATING =====================
+function Stars({rating}) {
+  return <div className="stars-row">
+    {[1,2,3,4,5].map(i=><span key={i} style={{color:i<=Math.round(rating)?'#F5A623':'#ddd'}}>{i<=Math.round(rating)?'★':'☆'}</span>)}
+  </div>;
+}
+
+// ===================== PROPERTY CARD =====================
+function PropCard({prop, onClick}) {
+  const {favorites, toggleFav} = useContext(AppCtx);
+  const isFav = favorites.includes(prop.id);
+  return <div className="prop-card" onClick={onClick}>
+    <div className="prop-img">
+      <div className="prop-img-placeholder" style={{background:`hsl(${prop.id*47%360},25%,88%)`}}>{prop.emoji}</div>
+      <div className="prop-badge">{prop.type}</div>
+      <button className={`prop-fav${isFav?' active':''}`} onClick={e=>{e.stopPropagation();toggleFav(prop.id);}}>
+        <span style={{color:isFav?'#e53935':'#aaa',fontSize:'1rem'}}>{isFav?'❤️':'🤍'}</span>
+      </button>
+      {prop.isVerified && <div className="prop-verified">✓ Vérifié</div>}
+    </div>
+    <div className="prop-body">
+      <div className="prop-price">{prop.rent.toLocaleString()} FCFA <span>/ mois</span></div>
+      <div className="prop-title">{prop.title}</div>
+      <div className="prop-loc">📍 {prop.quarter}, {prop.city}</div>
+      {prop.rating>0 && <div className="flex-center" style={{marginBottom:8}}><Stars rating={prop.rating}/><span style={{fontSize:'0.8rem',color:'var(--text-muted)',marginLeft:4}}>{prop.rating} ({prop.reviews})</span></div>}
+      <div className="prop-meta">
+        <span>🛏️ {prop.bedrooms} ch.</span>
+        <span>🚿 {prop.bathrooms} sdb</span>
+        <span>{prop.furnished?'✅ Meublé':'🔲 Non meublé'}</span>
+      </div>
+    </div>
+  </div>;
+}
+
+// ===================== PROPERTY MODAL =====================
+function PropModal() {
+  const {selectedProp:prop, setSelectedProp, favorites, toggleFav, showToast} = useContext(AppCtx);
+  if(!prop) return null;
+  const isFav = favorites.includes(prop.id);
+  const reviews = REVIEWS[prop.id] || [];
+  const waUrl = `https://wa.me/237${prop.landlordPhone}?text=Bonjour, je suis intéressé par votre annonce: ${prop.title}`;
+  return <div className="overlay" onClick={()=>setSelectedProp(null)}>
+    <div className="modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>{prop.title}</h3>
+        <button className="modal-close" onClick={()=>setSelectedProp(null)}>✕</button>
+      </div>
+      <div className="modal-body">
+        <div className="prop-detail-img" style={{background:`hsl(${prop.id*47%360},25%,88%)`}}>
+          <span style={{fontSize:'5rem'}}>{prop.emoji}</span>
+          {prop.isVerified && <div style={{position:'absolute',top:12,left:12}} className="prop-verified">✓ Annonce Vérifiée</div>}
+        </div>
+        <div className="flex-between">
+          <div>
+            <div className="prop-detail-price">{prop.rent.toLocaleString()} FCFA<span style={{fontSize:'1rem',fontWeight:400,color:'var(--text-muted)',fontFamily:'DM Sans'}}>/ mois</span></div>
+            <div className="prop-detail-title">{prop.title}</div>
+            <div className="prop-loc">📍 {prop.quarter}, {prop.city}</div>
+          </div>
+          <button style={{background:'none',border:'none',fontSize:'1.5rem',cursor:'pointer'}} onClick={()=>toggleFav(prop.id)}>{isFav?'❤️':'🤍'}</button>
+        </div>
+        <div className="prop-detail-meta">
+          <div className="prop-detail-chip">🛏️ {prop.bedrooms} chambre{prop.bedrooms>1?'s':''}</div>
+          <div className="prop-detail-chip">🚿 {prop.bathrooms} salle{prop.bathrooms>1?'s':''} de bain</div>
+          <div className="prop-detail-chip">{prop.type}</div>
+          <div className="prop-detail-chip">{prop.furnished?'✅ Meublé':'🔲 Non meublé'}</div>
+        </div>
+        {prop.rating>0 && <div className="flex-center" style={{margin:'8px 0'}}><Stars rating={prop.rating}/><span style={{fontSize:'0.9rem',marginLeft:6}}>{prop.rating}/5 · {prop.reviews} avis</span></div>}
+        <div className="prop-detail-desc">{prop.desc}</div>
+        <div className="landlord-row">
+          <div className="landlord-avatar">{prop.landlordName[0]}</div>
+          <div className="landlord-info">
+            <div className="landlord-name">{prop.landlordName}</div>
+            <div className="landlord-tag">Propriétaire · Membre depuis 2023</div>
+          </div>
+          <div className="chip">Réactif</div>
+        </div>
+        <div className="contact-btns">
+          <button className="contact-btn contact-phone" onClick={()=>showToast(`Appel: +237 ${prop.landlordPhone}`)}>📞 Appeler</button>
+          <a href={waUrl} target="_blank" rel="noreferrer" style={{textDecoration:'none',flex:1}} onClick={e=>e.stopPropagation()}><button className="contact-btn contact-wa" style={{width:'100%'}}>💬 WhatsApp</button></a>
+          <button className="contact-btn contact-msg" onClick={()=>showToast('Message envoyé au propriétaire!')}>✉️ Message</button>
+        </div>
+        {reviews.length>0 && <>
+          <div className="divider"></div>
+          <h4 style={{fontFamily:'Syne',fontWeight:700,marginBottom:12}}>Avis des locataires</h4>
+          {reviews.map(r=><div key={r.id} className="review-item">
+            <div className="review-header">
+              <div className="review-avatar">{r.name[0]}</div>
+              <div>
+                <div className="review-name">{r.name}</div>
+                <Stars rating={r.rating}/>
+              </div>
+              <div className="review-date">{r.date}</div>
+            </div>
+            <div className="review-text">{r.comment}</div>
+          </div>)}
+        </>}
+      </div>
+    </div>
+  </div>;
+}
+
+// ===================== AUTH MODAL =====================
+function AuthModal() {
+  const {showAuth, setShowAuth, login, showToast} = useContext(AppCtx);
+  const [tab, setTab] = useState(showAuth==='register'?'register':'login');
+  const [role, setRole] = useState('tenant');
+  const [form, setForm] = useState({name:'',email:'',phone:'',password:''});
+  const [error, setError] = useState('');
+  if(!showAuth) return null;
+  const handleLogin = () => {
+    if(!form.email||!form.password){setError('Veuillez remplir tous les champs');return;}
+    const demoUsers = [{email:'tenant@demo.cm',name:'Alice Mvogo',role:'tenant',phone:'677000001'},{email:'landlord@demo.cm',name:'Jean-Pierre Nkomo',role:'landlord',phone:'699123456'}];
+    const found = demoUsers.find(u=>u.email===form.email);
+    if(found) login({...found,id:found.role==='tenant'?1:2});
+    else { login({name:form.email.split('@')[0],email:form.email,role:'tenant',phone:'',id:99}); }
+  };
+  const handleRegister = () => {
+    if(!form.name||!form.email||!form.phone||!form.password){setError('Tous les champs sont obligatoires');return;}
+    login({name:form.name,email:form.email,phone:form.phone,role,id:99});
+  };
+  return <div className="overlay" onClick={()=>setShowAuth(false)}>
+    <div className="modal auth-modal" onClick={e=>e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>🏠 LoyerMboa</h3>
+        <button className="modal-close" onClick={()=>setShowAuth(false)}>✕</button>
+      </div>
+      <div className="modal-body">
+        <div className="auth-tabs">
+          <button className={`auth-tab${tab==='login'?' active':''}`} onClick={()=>{setTab('login');setError('');}}>Connexion</button>
+          <button className={`auth-tab${tab==='register'?' active':''}`} onClick={()=>{setTab('register');setError('');}}>Inscription</button>
+        </div>
+        {error && <div className="form-error">⚠️ {error}</div>}
+        {tab==='login' ? <>
+          <p style={{fontSize:'0.85rem',color:'var(--text-muted)',marginBottom:16}}>Démo: <strong>tenant@demo.cm</strong> ou <strong>landlord@demo.cm</strong></p>
+          <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="vous@exemple.cm" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+          <div className="form-group"><label className="form-label">Mot de passe</label><input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></div>
+          <button className="form-btn" onClick={handleLogin}>Se connecter</button>
+        </> : <>
+          <div className="form-group"><label className="form-label">Je suis</label>
+            <div className="role-selector">
+              <div className={`role-option${role==='tenant'?' selected':''}`} onClick={()=>setRole('tenant')}><div className="role-option-icon">🏠</div><div className="role-option-label">Locataire</div></div>
+              <div className={`role-option${role==='landlord'?' selected':''}`} onClick={()=>setRole('landlord')}><div className="role-option-icon">🔑</div><div className="role-option-label">Propriétaire</div></div>
+            </div>
+          </div>
+          <div className="form-group"><label className="form-label">Nom complet</label><input className="form-input" placeholder="Jean Dupont" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
+          <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" placeholder="vous@exemple.cm" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+          <div className="form-group"><label className="form-label">Téléphone</label><input className="form-input" placeholder="+237 6XX XXX XXX" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></div>
+          <div className="form-group"><label className="form-label">Mot de passe</label><input className="form-input" type="password" placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/></div>
+          <button className="form-btn" onClick={handleRegister}>Créer mon compte</button>
+        </>}
+      </div>
+    </div>
+  </div>;
+}
+
+// ===================== ADD LISTING MODAL =====================
+function AddListingModal() {
+  const {showAddListing, setShowAddListing, addListing} = useContext(AppCtx);
+  const [form, setForm] = useState({title:'',type:TYPES[0],quarter:QUARTERS[0],city:CITIES[0],rent:'',bedrooms:'1',bathrooms:'1',furnished:true,description:''});
+  if(!showAddListing) return null;
+  const handleSubmit = () => {
+    if(!form.title||!form.rent||!form.description){alert('Veuillez remplir tous les champs obligatoires');return;}
+    addListing({...form,rent:parseInt(form.rent),bedrooms:parseInt(form.bedrooms),bathrooms:parseInt(form.bathrooms)});
+    setForm({title:'',type:TYPES[0],quarter:QUARTERS[0],city:CITIES[0],rent:'',bedrooms:'1',bathrooms:'1',furnished:true,description:''});
+  };
+  return <div className="overlay" onClick={()=>setShowAddListing(false)}>
+    <div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:580}}>
+      <div className="modal-header"><h3>➕ Nouvelle annonce</h3><button className="modal-close" onClick={()=>setShowAddListing(false)}>✕</button></div>
+      <div className="modal-body listing-form">
+        <div className="form-group"><label className="form-label">Titre de l'annonce *</label><input className="form-input" placeholder="Ex: Appartement 2 chambres climatisé" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></div>
+        <div className="form-row">
+          <div className="form-group"><label className="form-label">Type de bien</label><select className="form-select" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Prix / mois (FCFA) *</label><input className="form-input" type="number" placeholder="150000" value={form.rent} onChange={e=>setForm({...form,rent:e.target.value})}/></div>
+        </div>
+        <div className="form-row">
+          <div className="form-group"><label className="form-label">Quartier</label><select className="form-select" value={form.quarter} onChange={e=>setForm({...form,quarter:e.target.value})}>{QUARTERS.map(q=><option key={q}>{q}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Ville</label><select className="form-select" value={form.city} onChange={e=>setForm({...form,city:e.target.value})}>{CITIES.map(c=><option key={c}>{c}</option>)}</select></div>
+        </div>
+        <div className="form-row">
+          <div className="form-group"><label className="form-label">Chambres</label><select className="form-select" value={form.bedrooms} onChange={e=>setForm({...form,bedrooms:e.target.value})}>{[1,2,3,4,5,6].map(n=><option key={n}>{n}</option>)}</select></div>
+          <div className="form-group"><label className="form-label">Salles de bain</label><select className="form-select" value={form.bathrooms} onChange={e=>setForm({...form,bathrooms:e.target.value})}>{[1,2,3,4].map(n=><option key={n}>{n}</option>)}</select></div>
+        </div>
+        <div className="form-group">
+          <label className="form-label">Meublé</label>
+          <div style={{display:'flex',gap:12}}>
+            <div className={`role-option${form.furnished?' selected':''}`} onClick={()=>setForm({...form,furnished:true})} style={{padding:'8px 16px'}}>✅ Oui</div>
+            <div className={`role-option${!form.furnished?' selected':''}`} onClick={()=>setForm({...form,furnished:false})} style={{padding:'8px 16px'}}>🔲 Non</div>
+          </div>
+        </div>
+        <div className="form-group"><label className="form-label">Description *</label><textarea className="form-textarea" placeholder="Décrivez le bien: équipements, atouts, proximité services..." value={form.description} onChange={e=>setForm({...form,description:e.target.value})}></textarea></div>
+        <div className="form-group">
+          <label className="form-label">Photos</label>
+          <div className="upload-zone"><div className="upload-icon">📸</div><div className="upload-text">Glissez vos photos ici ou cliquez pour sélectionner<br/><span style={{fontSize:'0.8rem',color:'#aaa'}}>JPG, PNG – max 5MB chacune</span></div></div>
+        </div>
+        <button className="form-btn" onClick={handleSubmit}>Publier l'annonce</button>
+      </div>
+    </div>
+  </div>;
+}
+
+// ===================== HOME PAGE =====================
+function HomePage() {
+  const {listings, setSelectedProp, setPage} = useContext(AppCtx);
+  const [search, setSearch] = useState({quarter:'',minRent:'',maxRent:'',type:''});
+  const featured = listings.filter(p=>p.isVerified).slice(0,3);
+  const recent = [...listings].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,3);
+  const handleSearch = () => {
+    setPage('listings');
+  };
+  return <>
+    <div className="hero">
+      <div className="hero-inner">
+        <div className="hero-tag">🇨🇲 N°1 de la location immobilière au Cameroun</div>
+        <h1>Trouvez votre <em>chez-vous</em> au Cameroun</h1>
+        <p>Des milliers d'appartements, studios et villas disponibles dans les meilleurs quartiers de Yaoundé, Douala et au-delà.</p>
+        <div className="hero-search">
+          <select value={search.quarter} onChange={e=>setSearch({...search,quarter:e.target.value})}>
+            <option value="">Tous les quartiers</option>
+            {QUARTERS.map(q=><option key={q} value={q}>{q}</option>)}
+          </select>
+          <input type="number" placeholder="Loyer min (FCFA)" value={search.minRent} onChange={e=>setSearch({...search,minRent:e.target.value})}/>
+          <input type="number" placeholder="Loyer max (FCFA)" value={search.maxRent} onChange={e=>setSearch({...search,maxRent:e.target.value})}/>
+          <select value={search.type} onChange={e=>setSearch({...search,type:e.target.value})}>
+            <option value="">Tous types</option>
+            {TYPES.map(t=><option key={t}>{t}</option>)}
+          </select>
+          <button onClick={handleSearch}>🔍 Rechercher</button>
+        </div>
+        <div className="hero-stats">
+          <div className="hero-stat"><strong>1 240+</strong><span>Annonces actives</span></div>
+          <div className="hero-stat"><strong>15</strong><span>Quartiers couverts</span></div>
+          <div className="hero-stat"><strong>98%</strong><span>Propriétaires vérifiés</span></div>
+          <div className="hero-stat"><strong>4.8★</strong><span>Note moyenne</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div className="section">
+      <div className="section-header">
+        <h2 className="section-title">Annonces <span>vérifiées</span></h2>
+        <button className="see-all" onClick={()=>setPage('listings')}>Voir tout →</button>
+      </div>
+      <div className="grid-3">
+        {featured.map(p=><PropCard key={p.id} prop={p} onClick={()=>setSelectedProp(p)}/>)}
+      </div>
+    </div>
+
+    <MapPreview listings={listings} />
+
+    <div className="section">
+      <div className="section-header">
+        <h2 className="section-title">Ajoutées <span>récemment</span></h2>
+        <button className="see-all" onClick={()=>setPage('listings')}>Voir tout →</button>
+      </div>
+      <div className="grid-3">
+        {recent.map(p=><PropCard key={p.id} prop={p} onClick={()=>setSelectedProp(p)}/>)}
+      </div>
+    </div>
+
+    <div className="section">
+      <div className="section-header"><h2 className="section-title">Ce que disent nos <span>utilisateurs</span></h2></div>
+      <div className="grid-3">
+        {[{text:`J'ai trouvé mon appartement à Bastos en 3 jours. Le contact avec le propriétaire était direct et la visite s'est très bien passée.`,name:'Alice Mvogo',role:'Locataire, Yaoundé',init:'AM'},
+          {text:`Depuis que j'ai mis mes propriétés sur LoyerMboa, j'ai toujours des locataires sérieux. La plateforme est très professionnelle.`,name:'Jean-Pierre Nkomo',role:'Propriétaire, 4 biens',init:'JN'},
+          {text:`La carte interactive est géniale! J'ai pu comparer les quartiers et trouver le logement parfait proche de mon bureau.`,name:'Bertrand Essama',role:'Locataire, Douala',init:'BE'},
+        ].map((t,i)=><div key={i} className="testi-card">
+          <div className="stars-row" style={{marginBottom:10}}>{[1,2,3,4,5].map(s=><span key={s} style={{color:'#F5A623'}}>★</span>)}</div>
+          <div className="testi-text">"{t.text}"</div>
+          <div className="testi-author"><div className="testi-avatar">{t.init}</div><div><div className="testi-name">{t.name}</div><div className="testi-role">{t.role}</div></div></div>
+        </div>)}
+      </div>
+    </div>
+
+    <Footer />
+  </>;
+}
+
+// ===================== MAP PREVIEW =====================
+function MapPreview({listings}) {
+  const {setPage} = useContext(AppCtx);
+  const pins = [{top:35,left:42,label:'B',price:'150K'},{top:55,left:58,label:'M',price:'80K'},{top:28,left:65,label:'S',price:'380K'},{top:68,left:38,label:'O',price:'220K'},{top:44,left:72,label:'N',price:'130K'}];
+  return <div className="map-section">
+    <div className="map-inner">
+      <div className="map-text">
+        <h2>Explorez les biens sur la carte</h2>
+        <p>Visualisez toutes les annonces géolocalisées sur une carte interactive. Cliquez sur un marqueur pour voir les détails, calculez la distance depuis votre position actuelle.</p>
+        <button className="nav-btn btn-primary" style={{padding:'12px 24px',fontFamily:'Syne',fontWeight:700}} onClick={()=>setPage('map')}>Ouvrir la carte →</button>
+      </div>
+      <div className="map-canvas">
+        <svg className="map-grid" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+          {[50,100,150,200,250,300].map(y=><line key={`h${y}`} x1="0" y1={y} x2="400" y2={y} stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>)}
+          {[50,100,150,200,250,300,350].map(x=><line key={`v${x}`} x1={x} y1="0" x2={x} y2="320" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>)}
+        </svg>
+        {pins.map((p,i)=><div key={i} className="map-pin" style={{top:`${p.top}%`,left:`${p.left}%`}} title={`${p.price} FCFA`}><div className="map-pin-inner" style={{fontSize:'0.6rem',fontWeight:700}}>{p.label}</div></div>)}
+        <div className="map-label">Yaoundé, Cameroun<br/><span style={{fontSize:'0.8rem'}}>🏠 {listings.length} biens disponibles</span></div>
+      </div>
+    </div>
+  </div>;
+}
+
+// ===================== LISTINGS PAGE =====================
+function ListingsPage() {
+  const {listings, setSelectedProp} = useContext(AppCtx);
+  const [filters, setFilters] = useState({quarter:'',type:'',minRent:'',maxRent:'',bedrooms:'',furnished:''});
+  const [page, setPage] = useState(1);
+  const PER_PAGE = 6;
+  const filtered = listings.filter(p=>{
+    if(filters.quarter && p.quarter!==filters.quarter) return false;
+    if(filters.type && p.type!==filters.type) return false;
+    if(filters.minRent && p.rent<parseInt(filters.minRent)) return false;
+    if(filters.maxRent && p.rent>parseInt(filters.maxRent)) return false;
+    if(filters.bedrooms && p.bedrooms!==parseInt(filters.bedrooms)) return false;
+    if(filters.furnished!=='' && p.furnished!==(filters.furnished==='true')) return false;
+    return true;
+  });
+  const paged = filtered.slice((page-1)*PER_PAGE, page*PER_PAGE);
+  const totalPages = Math.ceil(filtered.length/PER_PAGE);
+  const reset = ()=>{setFilters({quarter:'',type:'',minRent:'',maxRent:'',bedrooms:'',furnished:''});setPage(1);};
+  const hasFilters = Object.values(filters).some(v=>v!=='');
+  return <div className="section">
+    <div className="dash-header">
+      <h2>Toutes les annonces <span className="filter-count">{filtered.length}</span></h2>
+      <p className="text-muted">Trouvez votre logement idéal parmi nos annonces vérifiées</p>
+    </div>
+    <div className="filters">
+      <span className="filter-label">Filtres:</span>
+      <select className="filter-select" value={filters.quarter} onChange={e=>{setFilters({...filters,quarter:e.target.value});setPage(1);}}>
+        <option value="">Quartier</option>{QUARTERS.map(q=><option key={q}>{q}</option>)}
+      </select>
+      <select className="filter-select" value={filters.type} onChange={e=>{setFilters({...filters,type:e.target.value});setPage(1);}}>
+        <option value="">Type</option>{TYPES.map(t=><option key={t}>{t}</option>)}
+      </select>
+      <input className="filter-select" type="number" placeholder="Min FCFA" value={filters.minRent} onChange={e=>{setFilters({...filters,minRent:e.target.value});setPage(1);}} style={{width:110}}/>
+      <input className="filter-select" type="number" placeholder="Max FCFA" value={filters.maxRent} onChange={e=>{setFilters({...filters,maxRent:e.target.value});setPage(1);}} style={{width:110}}/>
+      <select className="filter-select" value={filters.bedrooms} onChange={e=>{setFilters({...filters,bedrooms:e.target.value});setPage(1);}}>
+        <option value="">Chambres</option>{[1,2,3,4,5].map(n=><option key={n} value={n}>{n} ch.</option>)}
+      </select>
+      <select className="filter-select" value={filters.furnished} onChange={e=>{setFilters({...filters,furnished:e.target.value});setPage(1);}}>
+        <option value="">Meublé?</option><option value="true">Meublé</option><option value="false">Non meublé</option>
+      </select>
+      {hasFilters && <button className="filter-reset" onClick={reset}>✕ Réinitialiser</button>}
+    </div>
+    {paged.length===0 ? <div className="empty-state"><div className="empty-state-icon">🔍</div><h3>Aucun résultat</h3><p>Essayez de modifier vos filtres pour trouver plus d'annonces.</p></div>
+    : <div className="grid-3">{paged.map(p=><PropCard key={p.id} prop={p} onClick={()=>setSelectedProp(p)}/>)}</div>}
+    {totalPages>1 && <div className="pagination">
+      {page>1 && <button className="page-btn" onClick={()=>setPage(page-1)}>‹</button>}
+      {Array.from({length:totalPages},(_,i)=><button key={i} className={`page-btn${page===i+1?' active':''}`} onClick={()=>setPage(i+1)}>{i+1}</button>)}
+      {page<totalPages && <button className="page-btn" onClick={()=>setPage(page+1)}>›</button>}
+    </div>}
+  </div>;
+}
+
+// ===================== MAP PAGE =====================
+function MapPage() {
+  const {listings, setSelectedProp} = useContext(AppCtx);
+  const [active, setActive] = useState(null);
+  const pins = [{top:32,left:40},{top:48,left:60},{top:25,left:68},{top:65,left:35},{top:42,left:72},{top:20,left:52},{top:75,left:55},{top:58,left:44}];
+  return <div className="section">
+    <div className="dash-header"><h2>🗺️ Carte des annonces</h2><p className="text-muted">Cliquez sur un marqueur pour voir le bien</p></div>
+    <div style={{background:'#1A3D2C',borderRadius:'var(--radius)',height:480,position:'relative',overflow:'hidden',border:'1px solid var(--border)'}}>
+      <svg style={{position:'absolute',inset:0,opacity:.12,width:'100%',height:'100%'}} viewBox="0 0 800 480">
+        {[60,120,180,240,300,360,420].map(y=><line key={y} x1="0" y1={y} x2="800" y2={y} stroke="white" strokeWidth="1"/>)}
+        {[80,160,240,320,400,480,560,640,720].map(x=><line key={x} x1={x} y1="0" x2={x} y2="480" stroke="white" strokeWidth="1"/>)}
+      </svg>
+      <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',color:'rgba(255,255,255,0.12)',fontFamily:'Syne',fontSize:'1.2rem',fontWeight:700,textAlign:'center',pointerEvents:'none'}}>Yaoundé<br/><span style={{fontSize:'0.85rem'}}>Centre, Cameroun</span></div>
+      {listings.slice(0,8).map((p,i)=>{
+        const pin = pins[i]||{top:50,left:50};
+        const isActive = active===p.id;
+        return <div key={p.id} style={{position:'absolute',top:`${pin.top}%`,left:`${pin.left}%`,cursor:'pointer',zIndex:isActive?10:1}} onClick={()=>setActive(isActive?null:p.id)}>
+          <div style={{background:p.isVerified?'var(--green)':'var(--accent)',color:'#fff',borderRadius:'50% 50% 50% 0',width:32,height:32,display:'flex',alignItems:'center',justifyContent:'center',transform:'rotate(-45deg)',border:'2px solid #fff',boxShadow:'0 2px 8px rgba(0,0,0,0.3)',transition:'all .2s',scale:isActive?'1.3':'1'}}>
+            <span style={{transform:'rotate(45deg)',fontSize:'0.7rem',fontWeight:700}}>{i+1}</span>
+          </div>
+          {isActive && <div style={{position:'absolute',bottom:40,left:'50%',transform:'translateX(-50%)',background:'#fff',borderRadius:10,padding:'10px 14px',width:200,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',zIndex:20}}>
+            <div style={{fontWeight:700,fontSize:'0.85rem',marginBottom:4}}>{p.title}</div>
+            <div style={{color:'var(--green)',fontFamily:'Syne',fontWeight:800,marginBottom:4}}>{p.rent.toLocaleString()} FCFA</div>
+            <div style={{fontSize:'0.8rem',color:'#666',marginBottom:8}}>📍 {p.quarter}</div>
+            <button style={{width:'100%',padding:'7px',background:'var(--green)',color:'#fff',border:'none',borderRadius:6,fontSize:'0.82rem',fontFamily:'DM Sans',fontWeight:600,cursor:'pointer'}} onClick={e=>{e.stopPropagation();setSelectedProp(p);}}>Voir l'annonce →</button>
+          </div>}
+        </div>;
+      })}
+      <div style={{position:'absolute',top:12,left:12,background:'rgba(255,255,255,0.95)',borderRadius:8,padding:'8px 12px',fontSize:'0.82rem',fontWeight:600}}>
+        🏠 {listings.length} biens · <span style={{color:'var(--green)'}}>✓ = vérifié</span>
+      </div>
+    </div>
+    <div className="grid-3 mt-3">
+      {listings.slice(0,6).map((p,i)=><div key={p.id} style={{background:'#fff',border:`2px solid ${active===p.id?'var(--green)':'var(--border)'}`,borderRadius:'var(--radius)',padding:'12px 14px',cursor:'pointer',transition:'all .2s'}} onClick={()=>setActive(p.id===active?null:p.id)}>
+        <div style={{display:'flex',gap:10,alignItems:'center'}}>
+          <div style={{width:38,height:38,borderRadius:8,background:`hsl(${p.id*47%360},25%,88%)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.3rem',flexShrink:0}}>{p.emoji}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:'0.88rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.title}</div>
+            <div style={{color:'var(--green)',fontFamily:'Syne',fontWeight:800,fontSize:'0.9rem'}}>{p.rent.toLocaleString()} FCFA</div>
+          </div>
+          <div style={{flexShrink:0,width:22,height:22,borderRadius:'50%',background:active===p.id?'var(--green)':'var(--bg)',border:'2px solid',borderColor:active===p.id?'var(--green)':'var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.7rem',color:active===p.id?'#fff':'var(--text-muted)',fontWeight:700}}>{i+1}</div>
+        </div>
+      </div>)}
+    </div>
+  </div>;
+}
+
+// ===================== FAVORITES PAGE =====================
+function FavoritesPage() {
+  const {listings, favorites, setSelectedProp} = useContext(AppCtx);
+  const favProps = listings.filter(p=>favorites.includes(p.id));
+  return <div className="section">
+    <div className="dash-header"><h2>❤️ Mes Favoris</h2><p className="text-muted">{favProps.length} bien{favProps.length!==1?'s':''} sauvegardé{favProps.length!==1?'s':''}</p></div>
+    {favProps.length===0 ? <div className="empty-state"><div className="empty-state-icon">🤍</div><h3>Aucun favori pour l'instant</h3><p>Parcourez les annonces et cliquez sur ❤️ pour sauvegarder les biens qui vous intéressent.</p></div>
+    : <div className="grid-3">{favProps.map(p=><PropCard key={p.id} prop={p} onClick={()=>setSelectedProp(p)}/>)}</div>}
+  </div>;
+}
+
+// ===================== DASHBOARD =====================
+function Dashboard() {
+  const {user, listings, setShowAddListing, deleteListing, setSelectedProp, showToast} = useContext(AppCtx);
+  const [view, setView] = useState('overview');
+  if(!user) return <div className="section"><div className="empty-state"><div className="empty-state-icon">🔒</div><h3>Connexion requise</h3><p>Veuillez vous connecter pour accéder au tableau de bord.</p></div></div>;
+  const myListings = listings.filter(p=>p.landlordId===user.id || user.role==='landlord');
+  const navItems = user.role==='landlord' ? [
+    {id:'overview',icon:'📊',label:'Vue d\'ensemble'},
+    {id:'listings',icon:'🏠',label:'Mes annonces'},
+    {id:'add',icon:'➕',label:'Nouvelle annonce'},
+    {id:'profile',icon:'👤',label:'Mon profil'},
+  ] : [
+    {id:'overview',icon:'📊',label:'Tableau de bord'},
+    {id:'search',icon:'🔍',label:'Mes recherches'},
+    {id:'messages',icon:'✉️',label:'Messages'},
+    {id:'profile',icon:'👤',label:'Mon profil'},
+  ];
+  const handleNav = (id) => { if(id==='add'){setShowAddListing(true);}else{setView(id);} };
+  return <div className="dash-layout">
+    <div className="dash-sidebar">
+      <div style={{padding:'0 12px 16px',marginBottom:8}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div className="nav-avatar" style={{width:40,height:40,fontSize:'1rem'}}>{user.name[0]}</div>
+          <div><div style={{fontWeight:700,fontSize:'0.92rem'}}>{user.name}</div><div style={{fontSize:'0.78rem',color:'var(--text-muted)'}}>{user.role==='landlord'?'Propriétaire':'Locataire'}</div></div>
+        </div>
+      </div>
+      <div className="dash-sidebar-title">Menu</div>
+      {navItems.map(n=><button key={n.id} className={`dash-nav-item${view===n.id?' active':''}`} onClick={()=>handleNav(n.id)}><span>{n.icon}</span>{n.label}</button>)}
+    </div>
+    <div className="dash-content">
+      {view==='overview' && <DashOverview user={user} myListings={myListings}/>}
+      {view==='listings' && <DashListings myListings={myListings} onView={setSelectedProp} onDelete={deleteListing} onAdd={()=>setShowAddListing(true)}/>}
+      {view==='profile' && <DashProfile user={user} showToast={showToast}/>}
+      {view==='search' && <DashSavedSearches/>}
+      {view==='messages' && <DashMessages/>}
+    </div>
+  </div>;
+}
+
+function DashOverview({user, myListings}) {
+  const isLandlord = user.role==='landlord';
+  return <>
+    <div className="dash-header"><h2>Bonjour, {user.name.split(' ')[0]}! 👋</h2><p className="text-muted">{new Date().toLocaleDateString('fr-FR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</p></div>
+    {isLandlord ? <>
+      <div className="stats-row">
+        {[{v:myListings.length,l:'Annonces publiées',d:'+1 ce mois'},{v:myListings.filter(p=>p.isVerified).length,l:'Vérifiées',d:'Actives'},{v:42,l:'Vues ce mois',d:'+15% vs dernier'},{v:8,l:'Contacts reçus',d:'+3 cette semaine'}].map((s,i)=><div key={i} className="stat-card"><div className="stat-card-value">{s.v}</div><div className="stat-card-label">{s.l}</div><div className="stat-card-delta">{s.d}</div></div>)}
+      </div>
+      <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:20}}>
+        <h4 style={{fontFamily:'Syne',fontWeight:700,marginBottom:16}}>Activité récente</h4>
+        {[{icon:'👁️',text:'3 personnes ont vu votre annonce à Bastos',time:'Il y a 2h'},{icon:'💬',text:'Nouveau message de Alice Mvogo',time:'Il y a 5h'},{icon:'❤️',text:'Votre villa a été sauvegardée 2 fois',time:'Hier'},{icon:'✓',text:'Annonce "Studio Melen" vérifiée',time:'Il y a 2 jours'}].map((a,i)=><div key={i} style={{display:'flex',gap:12,padding:'10px 0',borderBottom:i<3?'1px solid var(--border)':'none'}}>
+          <span style={{fontSize:'1.1rem'}}>{a.icon}</span><div style={{flex:1}}><div style={{fontSize:'0.9rem'}}>{a.text}</div><div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>{a.time}</div></div>
+        </div>)}
+      </div>
+    </> : <>
+      <div className="stats-row">
+        {[{v:12,l:'Annonces vues',d:'Cette semaine'},{v:4,l:'Favoris sauvés',d:'Total'},{v:2,l:'Messages envoyés',d:'Ce mois'},{v:3,l:'Visites planifiées',d:'À venir'}].map((s,i)=><div key={i} className="stat-card"><div className="stat-card-value">{s.v}</div><div className="stat-card-label">{s.l}</div><div className="stat-card-delta">{s.d}</div></div>)}
+      </div>
+      <div style={{background:'var(--green-light)',border:'1px solid var(--green)',borderRadius:'var(--radius)',padding:20}}>
+        <h4 style={{fontFamily:'Syne',fontWeight:700,marginBottom:6,color:'var(--green)'}}>💡 Conseil personnalisé</h4>
+        <p style={{fontSize:'0.9rem',color:'var(--text-muted)'}}>Il y a 3 nouvelles annonces à Bastos correspondant à vos critères de recherche. <strong style={{color:'var(--green)'}}>Consultez-les maintenant!</strong></p>
+      </div>
+    </>}
+  </>;
+}
+
+function DashListings({myListings, onView, onDelete, onAdd}) {
+  return <>
+    <div className="flex-between mb-2">
+      <div className="dash-header" style={{margin:0}}><h2>Mes annonces</h2><p className="text-muted">{myListings.length} annonce{myListings.length!==1?'s':''}</p></div>
+      <button className="nav-btn btn-primary" onClick={onAdd}>+ Nouvelle annonce</button>
+    </div>
+    {myListings.length===0 ? <div className="empty-state"><div className="empty-state-icon">🏠</div><h3>Aucune annonce</h3><p>Publiez votre première annonce pour commencer à trouver des locataires.</p></div> :
+    <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:'var(--radius)',overflow:'hidden'}}>
+      <table className="data-table">
+        <thead><tr><th>Bien</th><th>Prix/mois</th><th>Quartier</th><th>Statut</th><th>Actions</th></tr></thead>
+        <tbody>{myListings.map(p=><tr key={p.id}>
+          <td><div style={{fontWeight:600,fontSize:'0.9rem'}}>{p.emoji} {p.title}</div><div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>{p.type} · {p.bedrooms} ch.</div></td>
+          <td><strong style={{color:'var(--green)',fontFamily:'Syne'}}>{p.rent.toLocaleString()}</strong></td>
+          <td>{p.quarter}</td>
+          <td><span className={`status-badge status-${p.isVerified?'verified':'pending'}`}>{p.isVerified?'✓ Vérifié':'⏳ En attente'}</span></td>
+          <td><button className="table-action" onClick={()=>onView(p)}>Voir</button><button className="table-action">Modifier</button><button className="table-action del" onClick={()=>onDelete(p.id)}>Suppr.</button></td>
+        </tr>)}</tbody>
+      </table>
+    </div>}
+  </>;
+}
+
+function DashProfile({user, showToast}) {
+  const [form, setForm] = useState({name:user.name, email:user.email||'', phone:user.phone||''});
+  return <>
+    <div className="dash-header"><h2>Mon profil</h2><p className="text-muted">Gérez vos informations personnelles</p></div>
+    <div style={{background:'#fff',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:24,maxWidth:480}}>
+      <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:24,paddingBottom:20,borderBottom:'1px solid var(--border)'}}>
+        <div className="nav-avatar" style={{width:56,height:56,fontSize:'1.4rem'}}>{user.name[0]}</div>
+        <div><div style={{fontWeight:700,fontSize:'1.1rem'}}>{user.name}</div><div style={{color:'var(--text-muted)',fontSize:'0.88rem'}}>{user.role==='landlord'?'🔑 Propriétaire':'🏠 Locataire'} · Membre depuis 2024</div></div>
+      </div>
+      <div className="form-group"><label className="form-label">Nom complet</label><input className="form-input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/></div>
+      <div className="form-group"><label className="form-label">Email</label><input className="form-input" type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/></div>
+      <div className="form-group"><label className="form-label">Téléphone</label><input className="form-input" value={form.phone} onChange={e=>setForm({...form,phone:e.target.value})}/></div>
+      <button className="form-btn" onClick={()=>showToast('Profil mis à jour avec succès!')}>Sauvegarder</button>
+    </div>
+  </>;
+}
+
+function DashSavedSearches() {
+  return <>
+    <div className="dash-header"><h2>Mes recherches sauvegardées</h2><p className="text-muted">Recevez des alertes pour les nouveaux biens</p></div>
+    {[{q:'Bastos',max:'200 000 FCFA',type:'Appartement',count:3},{q:'Melen',max:'100 000 FCFA',type:'Studio',count:1}].map((s,i)=><div key={i} style={{background:'#fff',border:'1px solid var(--border)',borderRadius:'var(--radius)',padding:16,marginBottom:12,display:'flex',alignItems:'center',gap:16}}>
+      <span style={{fontSize:'1.5rem'}}>🔔</span>
+      <div style={{flex:1}}><div style={{fontWeight:700}}>{s.q} · {s.type}</div><div style={{fontSize:'0.85rem',color:'var(--text-muted)'}}>Max {s.max} · {s.count} nouvelles annonces</div></div>
+      <span className="badge-new">{s.count} nouveau{s.count>1?'x':''}</span>
+      <button className="table-action del">Suppr.</button>
+    </div>)}
+  </>;
+}
+
+function DashMessages() {
+  return <>
+    <div className="dash-header"><h2>Messages</h2><p className="text-muted">Vos échanges avec les propriétaires</p></div>
+    {[{name:'Jean-Pierre Nkomo',msg:'Bonjour, le bien est disponible à partir du 1er mars...',time:'10:32',unread:2},{name:'Marie Atangana',msg:'Oui, vous pouvez visiter samedi matin entre 9h et 12h',time:'Hier',unread:0}].map((m,i)=><div key={i} style={{background:'#fff',border:`1px solid ${m.unread?'var(--green)':'var(--border)'}`,borderRadius:'var(--radius)',padding:16,marginBottom:10,cursor:'pointer',transition:'all .2s',display:'flex',alignItems:'center',gap:14}}>
+      <div className="nav-avatar" style={{width:44,height:44,fontSize:'1.1rem',flexShrink:0}}>{m.name[0]}</div>
+      <div style={{flex:1,minWidth:0}}><div style={{fontWeight:700,fontSize:'0.92rem'}}>{m.name}</div><div style={{fontSize:'0.85rem',color:'var(--text-muted)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{m.msg}</div></div>
+      <div style={{flexShrink:0,textAlign:'right'}}><div style={{fontSize:'0.78rem',color:'var(--text-muted)'}}>{m.time}</div>{m.unread>0 && <span style={{background:'var(--green)',color:'#fff',borderRadius:20,padding:'2px 8px',fontSize:'0.75rem',fontWeight:700}}>{m.unread}</span>}</div>
+    </div>)}
+  </>;
+}
+
+// ===================== FOOTER =====================
+function Footer() {
+  return <footer className="footer">
+    <div className="footer-inner">
+      <div className="footer-grid">
+        <div><div className="footer-brand">Loyer<span>Mboa</span></div><p className="footer-desc">La plateforme de référence pour la location immobilière au Cameroun. Trouvez votre chez-vous en toute confiance.</p></div>
+        <div><h4>Navigation</h4><span className="footer-link">Accueil</span><span className="footer-link">Annonces</span><span className="footer-link">Carte</span><span className="footer-link">Favoris</span></div>
+        <div><h4>Propriétaires</h4><span className="footer-link">Publier une annonce</span><span className="footer-link">Tableau de bord</span><span className="footer-link">Tarifs</span><span className="footer-link">Aide</span></div>
+        <div><h4>Contact</h4><span className="footer-link">📍 Yaoundé, Cameroun</span><span className="footer-link">📞 +237 6XX XXX XXX</span><span className="footer-link">✉️ contact@loyermboa.cm</span></div>
+      </div>
+      <div className="footer-bottom"><span className="footer-copy">© 2024 LoyerMboa. Tous droits réservés.</span><span className="footer-copy">Fait avec ❤️ au Cameroun 🇨🇲</span></div>
+    </div>
+  </footer>;
+}
+
+// ===================== APP =====================
+function App() {
+  const {page, showAuth, selectedProp, showAddListing, setShowAuth} = useContext(AppCtx);
+  return <>
+    <Nav/>
+    {page==='home' && <HomePage/>}
+    {page==='listings' && <ListingsPage/>}
+    {page==='map' && <MapPage/>}
+    {page==='favorites' && <FavoritesPage/>}
+    {page==='dashboard' && <Dashboard/>}
+    <PropModal/>
+    {showAuth && <AuthModal/>}
+    {showAddListing && <AddListingModal/>}
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <AppProvider><App/></AppProvider>
+);
+</script>
+</body>
+</html>

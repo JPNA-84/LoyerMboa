@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: loyermboa-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: loyermboa
+    networks:
+      - loyermboa-net
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: loyermboa-api
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://mongo:27017/loyermboa
+      JWT_SECRET: ${JWT_SECRET:-changeme_in_production_32chars_min}
+      JWT_EXPIRE: 7d
+      CLIENT_URL: http://localhost:3000
+      UPLOAD_PATH: /app/uploads
+    volumes:
+      - uploads-data:/app/uploads
+    networks:
+      - loyermboa-net
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: loyermboa-web
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - loyermboa-net
+
+volumes:
+  mongo-data:
+  uploads-data:
+
+networks:
+  loyermboa-net:
+    driver: bridge
