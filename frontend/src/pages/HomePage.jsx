@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { useProperties } from '../hooks/useData';
 import PropertyCard from '../components/property/PropertyCard';
 import Footer from '../components/layout/Footer';
 import { Spinner } from '../components/common/UI';
+import api from '../utils/api';
 
 function MapPreview({ listings }) {
   const { t } = useApp();
@@ -51,18 +52,48 @@ function MapPreview({ listings }) {
 }
 
 export default function HomePage() {
-  const { t, setSelectedProperty, setShowAuth, user } = useApp();
+  const { t, lang, setSelectedProperty } = useApp();
   const navigate = useNavigate();
   const h = t.hero;
   const s = t.sections;
 
   const [search, setSearch] = useState({ quarter: '', minPrice: '', maxPrice: '', propertyType: '' });
+  const [stats, setStats] = useState({ total: 0, quarters: 0 });
+  const [realReviews, setRealReviews] = useState([]);
 
   const { data: allProps, loading } = useProperties({ limit: 9 });
   const featured = allProps.filter(p => p.status === 'verified').slice(0, 3);
   const recent = [...allProps].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 3);
 
-  const handleSearch = () => navigate('/listings?' + new URLSearchParams(Object.fromEntries(Object.entries(search).filter(([, v]) => v))).toString());
+  // Fetch real stats
+  useEffect(() => {
+    api.get('/properties/search?limit=100')
+      .then(res => {
+        const props = res.data.data || [];
+        const uniqueQuarters = [...new Set(props.map(p => p.quarter).filter(Boolean))];
+        setStats({ total: res.data.total || props.length, quarters: uniqueQuarters.length });
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch real reviews
+  useEffect(() => {
+    if (allProps.length === 0) return;
+    const promises = allProps.slice(0, 5).map(p =>
+      api.get(`/reviews/${p._id}`).then(r => r.data.data || []).catch(() => [])
+    );
+    Promise.all(promises).then(results => {
+      setRealReviews(results.flat().slice(0, 3));
+    });
+  }, [allProps.length]);
+
+  const handleSearch = () => navigate('/listings?' + new URLSearchParams(
+    Object.fromEntries(Object.entries(search).filter(([, v]) => v))
+  ).toString());
+
+  const avgRating = allProps.filter(p => p.averageRating > 0).length > 0
+    ? (allProps.reduce((sum, p) => sum + (p.averageRating || 0), 0) / allProps.filter(p => p.averageRating > 0).length).toFixed(1)
+    : null;
 
   return (
     <>
@@ -73,10 +104,15 @@ export default function HomePage() {
           <h1>{h.title} <em>{h.titleAccent}</em> {h.titleEnd}</h1>
           <p className="hero-sub">{h.subtitle}</p>
           <div className="hero-search">
-            <select value={search.quarter} onChange={e => setSearch({ ...search, quarter: e.target.value })}>
-              <option value="">{h.searchQuarter}</option>
-              {t.quarters.map(q => <option key={q}>{q}</option>)}
-            </select>
+            <input
+              list="hero-quarters"
+              placeholder={h.searchQuarter}
+              value={search.quarter}
+              onChange={e => setSearch({ ...search, quarter: e.target.value })}
+            />
+            <datalist id="hero-quarters">
+              {t.quarters.map(q => <option key={q} value={q} />)}
+            </datalist>
             <input type="number" placeholder={h.searchMinRent}
               value={search.minPrice} onChange={e => setSearch({ ...search, minPrice: e.target.value })} />
             <input type="number" placeholder={h.searchMaxRent}
@@ -87,28 +123,36 @@ export default function HomePage() {
             </select>
             <button className="hero-search-btn" onClick={handleSearch}>🔍 {h.searchBtn}</button>
           </div>
+
+          {/* Real stats */}
           <div className="hero-stats">
-            {[
-              { v: h.stat1Value, l: h.stat1Label },
-              { v: h.stat2Value, l: h.stat2Label },
-              { v: h.stat3Value, l: h.stat3Label },
-              { v: h.stat4Value, l: h.stat4Label },
-            ].map((s, i) => (
-              <div key={i} className="hero-stat">
-                <strong>{s.v}</strong><span>{s.l}</span>
-              </div>
-            ))}
+            <div className="hero-stat">
+              <strong>{stats.total > 0 ? `${stats.total}+` : '—'}</strong>
+              <span>{h.stat1Label}</span>
+            </div>
+            <div className="hero-stat">
+              <strong>{stats.quarters > 0 ? stats.quarters : '—'}</strong>
+              <span>{h.stat2Label}</span>
+            </div>
+            <div className="hero-stat">
+              <strong>{avgRating ? `${avgRating}★` : lang === 'fr' ? 'Nouveau' : 'New'}</strong>
+              <span>{h.stat4Label}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Featured */}
+      {/* Featured listings */}
       <div className="section">
         <div className="section-header">
           <h2 className="section-title">{s.featuredTitle} <span>{s.featuredAccent}</span></h2>
           <button className="see-all-btn" onClick={() => navigate('/listings')}>{s.seeAll}</button>
         </div>
-        {loading ? <Spinner /> : (
+        {loading ? <Spinner /> : featured.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 40 }}>
+            {lang === 'en' ? 'No listings yet.' : 'Aucune annonce pour le moment.'}
+          </p>
+        ) : (
           <div className="grid-3">
             {featured.map(p => <PropertyCard key={p._id} property={p} onClick={() => setSelectedProperty(p)} />)}
           </div>
@@ -118,42 +162,54 @@ export default function HomePage() {
       {/* Map preview */}
       <MapPreview listings={allProps} />
 
-      {/* Recent */}
+      {/* Recent listings */}
       <div className="section">
         <div className="section-header">
           <h2 className="section-title">{s.recentTitle} <span>{s.recentAccent}</span></h2>
           <button className="see-all-btn" onClick={() => navigate('/listings')}>{s.seeAll}</button>
         </div>
-        {loading ? <Spinner /> : (
+        {loading ? <Spinner /> : recent.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 40 }}>
+            {lang === 'en' ? 'No listings yet.' : 'Aucune annonce pour le moment.'}
+          </p>
+        ) : (
           <div className="grid-3">
             {recent.map(p => <PropertyCard key={p._id} property={p} onClick={() => setSelectedProperty(p)} />)}
           </div>
         )}
       </div>
 
-      {/* Testimonials */}
-      <div className="section">
-        <div className="section-header">
-          <h2 className="section-title">{s.testiTitle} <span>{s.testiAccent}</span></h2>
-        </div>
-        <div className="grid-3">
-          {t.testimonials.map((testi, i) => (
-            <div key={i} className="testi-card">
-              <div style={{ display: 'flex', gap: 2, color: 'var(--accent)', marginBottom: 12 }}>
-                {'★★★★★'}
-              </div>
-              <p className="testi-text">"{testi.text}"</p>
-              <div className="testi-author">
-                <div className="testi-avatar">{testi.init}</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{testi.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{testi.role}</div>
+      {/* Real reviews — only shown if they exist */}
+      {realReviews.length > 0 && (
+        <div className="section">
+          <div className="section-header">
+            <h2 className="section-title">{s.testiTitle} <span>{s.testiAccent}</span></h2>
+          </div>
+          <div className="grid-3">
+            {realReviews.map((review, i) => (
+              <div key={review._id || i} className="testi-card">
+                <div style={{ display: 'flex', gap: 2, color: 'var(--accent)', marginBottom: 12 }}>
+                  {'★'.repeat(review.rating || 5)}{'☆'.repeat(5 - (review.rating || 5))}
+                </div>
+                <p className="testi-text">"{review.comment}"</p>
+                <div className="testi-author">
+                  <div className="testi-avatar">
+                    {(review.tenant?.fullname || '?')[0].toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
+                      {review.tenant?.fullname || (lang === 'en' ? 'Tenant' : 'Locataire')}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      {lang === 'en' ? '✓ Verified tenant' : '✓ Locataire vérifié'}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <Footer />
     </>

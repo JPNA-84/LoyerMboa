@@ -17,63 +17,106 @@ function StatCard({ value, label, delta }) {
   );
 }
 
-// ── Overview (Landlord) ───────────────────────────────────
+// ── Overview (Landlord) — real data ───────────────────────
 function LandlordOverview({ user, listings, t }) {
   const d = t.dashboard;
+  const { data: messages } = useMessages();
+  const lang = t === t ? t.lang : 'fr';
+
   const verified = listings.filter(p => p.status === 'verified').length;
-  const recentActivity = [
-    { icon: '👁️', text: `3 ${d.seen} Bastos`, time: `2${d.h}` },
-    { icon: '💬', text: `${d.newMessage} Alice Mvogo`, time: `5${d.h}` },
-    { icon: '❤️', text: `Villa ${d.saved} 2 ${d.times}`, time: d.yesterday },
-    { icon: '✓',  text: `${d.verifiedMsg}: Studio Melen`, time: `2 ${d.days}` },
-  ];
+  const pending = listings.filter(p => p.status === 'pending').length;
+  const totalViews = listings.reduce((sum, p) => sum + (p.views || 0), 0);
+  const totalContacts = listings.reduce((sum, p) => sum + (p.contactCount || 0), 0);
+  const unreadMessages = messages.filter(m => !m.isRead && m.recipient?._id === user._id).length;
+
+  // Real recent activity from listings and messages
+  const recentActivity = [];
+  messages.slice(0, 2).forEach(m => {
+    recentActivity.push({
+      icon: '💬',
+      text: `${d.newMessage} ${m.sender?.fullname || '?'} — ${m.property?.title || ''}`,
+      time: new Date(m.createdAt).toLocaleDateString(),
+    });
+  });
+  listings.filter(p => p.status === 'verified').slice(0, 2).forEach(p => {
+    recentActivity.push({
+      icon: '✅',
+      text: `${d.verifiedMsg}: ${p.title}`,
+      time: new Date(p.updatedAt).toLocaleDateString(),
+    });
+  });
+  listings.filter(p => p.status === 'pending').slice(0, 1).forEach(p => {
+    recentActivity.push({
+      icon: '⏳',
+      text: `${t.property.pending}: ${p.title}`,
+      time: new Date(p.createdAt).toLocaleDateString(),
+    });
+  });
+
   return (
     <>
       <div className="stats-grid">
-        <StatCard value={listings.length} label={d.totalListings} delta={d.thisMonth} />
-        <StatCard value={verified} label={d.verified} delta={d.active} />
-        <StatCard value={42} label={d.viewsMonth} delta={d.vsLast} />
-        <StatCard value={8} label={d.contacts} delta={d.thisWeek} />
+        <StatCard value={listings.length} label={d.totalListings} />
+        <StatCard value={verified} label={d.verified} delta={pending > 0 ? `${pending} ${t.property.pending}` : null} />
+        <StatCard value={totalViews} label={d.viewsMonth} />
+        <StatCard value={totalContacts} label={d.contacts} />
       </div>
-      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
-        <h4 style={{ fontFamily: 'Syne', fontWeight: 700, marginBottom: 16 }}>{d.recentActivity}</h4>
-        {recentActivity.map((a, i) => (
-          <div key={i} style={{
-            display: 'flex', gap: 12, padding: '10px 0',
-            borderBottom: i < recentActivity.length - 1 ? '1px solid var(--border)' : 'none',
-          }}>
-            <span style={{ fontSize: '1.1rem' }}>{a.icon}</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '0.9rem' }}>{a.text}</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.time}</div>
+
+      {recentActivity.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <h4 style={{ fontFamily: 'Syne', fontWeight: 700, marginBottom: 16 }}>{d.recentActivity}</h4>
+          {recentActivity.map((a, i) => (
+            <div key={i} style={{
+              display: 'flex', gap: 12, padding: '10px 0',
+              borderBottom: i < recentActivity.length - 1 ? '1px solid var(--border)' : 'none',
+            }}>
+              <span style={{ fontSize: '1.1rem' }}>{a.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.9rem' }}>{a.text}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{a.time}</div>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {recentActivity.length === 0 && (
+        <div style={{ background: 'var(--green-light)', border: '1px solid var(--green)', borderRadius: 'var(--radius)', padding: 20 }}>
+          <p style={{ color: 'var(--green)', fontSize: '0.95rem' }}>
+            {t.lang === 'en'
+              ? '👋 Welcome! Add your first listing to get started.'
+              : '👋 Bienvenue! Ajoutez votre première annonce pour commencer.'}
+          </p>
+        </div>
+      )}
     </>
   );
 }
 
-// ── Overview (Tenant) ─────────────────────────────────────
+// ── Overview (Tenant) — real data ─────────────────────────
 function TenantOverview({ user, t }) {
   const d = t.dashboard;
+  const { data: messages } = useMessages();
+  const sentMessages = messages.filter(m => m.sender?._id === user._id).length;
+  const unread = messages.filter(m => !m.isRead && m.recipient?._id === user._id).length;
+
   return (
     <>
       <div className="stats-grid">
-        <StatCard value={12} label={d.propertiesViewed} delta={d.thisWeek} />
-        <StatCard value={4}  label={d.favsSaved} />
-        <StatCard value={2}  label={d.messagesSent} delta={d.thisMonth} />
-        <StatCard value={3}  label={d.visits} />
+        <StatCard value={sentMessages} label={d.messagesSent} />
+        <StatCard value={unread} label={t.lang === 'en' ? 'Unread messages' : 'Messages non lus'} />
       </div>
       <div style={{
         background: 'var(--green-light)', border: '1px solid var(--green)',
         borderRadius: 'var(--radius)', padding: 20,
       }}>
         <h4 style={{ fontFamily: 'Syne', fontWeight: 700, marginBottom: 6, color: 'var(--green)' }}>
-          {d.recommendation}
+          {t.lang === 'en' ? '💡 Tip' : '💡 Conseil'}
         </h4>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          {d.recommendationText}
+          {t.lang === 'en'
+            ? 'Browse listings and contact landlords directly to find your ideal home.'
+            : 'Parcourez les annonces et contactez les propriétaires directement pour trouver votre logement idéal.'}
         </p>
       </div>
     </>
@@ -83,14 +126,14 @@ function TenantOverview({ user, t }) {
 // ── My Listings Tab ───────────────────────────────────────
 function MyListingsTab({ t, onAdd }) {
   const d = t.dashboard;
-  const { data: listings, loading, refetch, remove } = useMyProperties();
+  const { data: listings, loading, remove } = useMyProperties();
   const { setSelectedProperty, showToast } = useApp();
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Supprimer cette annonce? / Delete this listing?')) return;
+    if (!window.confirm(t.lang === 'en' ? 'Delete this listing?' : 'Supprimer cette annonce?')) return;
     try {
       await remove(id);
-      showToast('Annonce supprimée / Listing deleted');
+      showToast(t.lang === 'en' ? 'Listing deleted' : 'Annonce supprimée');
     } catch (e) {
       showToast(e.response?.data?.message || t.common.error, 'error');
     }
@@ -101,7 +144,7 @@ function MyListingsTab({ t, onAdd }) {
       <div className="flex-between mb-2">
         <div className="dash-header" style={{ margin: 0 }}>
           <h2>{d.myListings}</h2>
-          <p className="text-muted">{listings.length} annonce{listings.length !== 1 ? 's' : ''}</p>
+          <p className="text-muted">{listings.length} {t.lang === 'en' ? `listing${listings.length !== 1 ? 's' : ''}` : `annonce${listings.length !== 1 ? 's' : ''}`}</p>
         </div>
         <button className="btn btn-primary" onClick={onAdd}>+ {d.addListing}</button>
       </div>
@@ -117,6 +160,7 @@ function MyListingsTab({ t, onAdd }) {
                 <th>{d.property}</th>
                 <th>{d.priceMonth}</th>
                 <th>{d.quarter}</th>
+                <th>{t.lang === 'en' ? 'Views' : 'Vues'}</th>
                 <th>{d.status}</th>
                 <th>{d.actions}</th>
               </tr>
@@ -127,15 +171,16 @@ function MyListingsTab({ t, onAdd }) {
                   <td>
                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.title}</div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      {p.propertyType} · {p.bedrooms} ch.
+                      {p.propertyType} · {p.bedrooms} {t.lang === 'en' ? 'bd.' : 'ch.'}
                     </div>
                   </td>
                   <td>
                     <strong style={{ color: 'var(--green)', fontFamily: 'Syne' }}>
-                      {p.rentPrice?.toLocaleString()}
+                      {p.rentPrice?.toLocaleString()} FCFA
                     </strong>
                   </td>
                   <td>{p.quarter}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>{p.views || 0}</td>
                   <td><StatusBadge status={p.status} t={t} /></td>
                   <td>
                     <button className="btn btn-outline btn-sm" style={{ marginRight: 6 }}
@@ -154,7 +199,6 @@ function MyListingsTab({ t, onAdd }) {
 }
 
 // ── Admin Panel Tab ───────────────────────────────────────
-// ── Admin Panel Tab ───────────────────────────────────────
 function AdminTab({ t }) {
   const { showToast } = useApp();
   const d = t.dashboard;
@@ -169,7 +213,7 @@ function AdminTab({ t }) {
       const pending = (data.data || []).filter(p => p.status === 'pending');
       setListings(pending);
     } catch (e) {
-      showToast('Failed to load pending listings', 'error');
+      showToast(t.lang === 'en' ? 'Failed to load pending listings' : 'Erreur de chargement', 'error');
     } finally {
       setLoading(false);
     }
@@ -198,11 +242,7 @@ function AdminTab({ t }) {
       </div>
 
       {loading ? <Spinner /> : listings.length === 0 ? (
-        <EmptyState
-          icon="✅"
-          title={d.adminAllApproved}
-          desc={d.adminAllApprovedDesc}
-        />
+        <EmptyState icon="✅" title={d.adminAllApproved} desc={d.adminAllApprovedDesc} />
       ) : (
         <div className="table-wrap">
           <table className="data-table">
@@ -222,7 +262,7 @@ function AdminTab({ t }) {
                   <td>
                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{p.title}</div>
                     <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      {p.propertyType} · {p.bedrooms} ch. · {p.bathrooms} sdb
+                      {p.propertyType} · {p.bedrooms} {t.lang === 'en' ? 'bd.' : 'ch.'} · {p.bathrooms} {t.lang === 'en' ? 'ba.' : 'sdb'}
                     </div>
                   </td>
                   <td>
@@ -239,19 +279,14 @@ function AdminTab({ t }) {
                     {new Date(p.createdAt).toLocaleDateString(t.lang === 'fr' ? 'fr-FR' : 'en-US')}
                   </td>
                   <td>
-                    <button
-                      className="btn btn-primary btn-sm"
-                      style={{ marginRight: 6 }}
+                    <button className="btn btn-primary btn-sm" style={{ marginRight: 6 }}
                       disabled={acting === p._id}
-                      onClick={() => handleVerify(p._id, 'verified')}
-                    >
+                      onClick={() => handleVerify(p._id, 'verified')}>
                       {acting === p._id ? '...' : d.adminApprove}
                     </button>
-                    <button
-                      className="btn btn-danger btn-sm"
+                    <button className="btn btn-danger btn-sm"
                       disabled={acting === p._id}
-                      onClick={() => handleVerify(p._id, 'rejected')}
-                    >
+                      onClick={() => handleVerify(p._id, 'rejected')}>
                       {acting === p._id ? '...' : d.adminReject}
                     </button>
                   </td>
@@ -261,12 +296,7 @@ function AdminTab({ t }) {
           </table>
         </div>
       )}
-
-      <button
-        className="btn btn-outline"
-        style={{ marginTop: 16 }}
-        onClick={fetchPending}
-      >
+      <button className="btn btn-outline" style={{ marginTop: 16 }} onClick={fetchPending}>
         {d.adminRefresh}
       </button>
     </>
@@ -324,7 +354,7 @@ function ProfileTab({ user, t }) {
             <input className="form-input" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
           </div>
           <div className="form-group">
-            <label className="form-label">Langue / Language</label>
+            <label className="form-label">{t.lang === 'en' ? 'Language' : 'Langue'}</label>
             <select className="form-select" value={form.preferredLang} onChange={e => setForm({ ...form, preferredLang: e.target.value })}>
               <option value="fr">🇫🇷 Français</option>
               <option value="en">🇬🇧 English</option>
@@ -360,24 +390,28 @@ function SavedSearchesTab({ user, t }) {
   const searches = user.savedSearches || [];
   return (
     <>
-      <div className="dash-header"><h2>{d.savedSearchesTitle}</h2><p className="text-muted">{d.savedSearchesDesc}</p></div>
+      <div className="dash-header">
+        <h2>{d.savedSearchesTitle}</h2>
+        <p className="text-muted">{d.savedSearchesDesc}</p>
+      </div>
       {searches.length === 0 ? (
-        <EmptyState icon="🔔" title="Aucune recherche" desc="Sauvegardez vos critères de recherche pour recevoir des alertes." />
+        <EmptyState icon="🔔"
+          title={t.lang === 'en' ? 'No saved searches' : 'Aucune recherche sauvegardée'}
+          desc={t.lang === 'en' ? 'Save your search criteria to receive alerts for new listings.' : 'Sauvegardez vos critères de recherche pour recevoir des alertes.'} />
       ) : searches.map((s, i) => (
         <div key={i} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 16 }}>
           <span style={{ fontSize: '1.5rem' }}>🔔</span>
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700 }}>{s.quarter} · {s.type || 'Tous types'}</div>
+            <div style={{ fontWeight: 700 }}>{s.quarter} · {s.type || (t.lang === 'en' ? 'All types' : 'Tous types')}</div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Max {s.maxRent?.toLocaleString()} FCFA</div>
           </div>
-          <span className="badge-new">2 {d.newListings}</span>
         </div>
       ))}
     </>
   );
 }
 
-// ── Messages Tab ──────────────────────────────────────────────────────────────
+// ── Messages Tab ──────────────────────────────────────────
 function MessagesTab({ t }) {
   const d = t.dashboard;
   const { data: messages, loading } = useMessages();
@@ -388,7 +422,7 @@ function MessagesTab({ t }) {
   const [sending, setSending] = useState(false);
   const [loadingThread, setLoadingThread] = useState(false);
 
-const openThread = async (msg) => {
+  const openThread = async (msg) => {
     setSelected(msg);
     setLoadingThread(true);
     try {
@@ -397,8 +431,7 @@ const openThread = async (msg) => {
         { headers: { Authorization: 'Bearer ' + localStorage.getItem('lm_token') } }
       );
       const replyData = await res.json();
-      const replies = replyData.data || [];
-      const combined = [msg, ...replies].filter((m, i, arr) =>
+      const combined = [msg, ...(replyData.data || [])].filter((m, i, arr) =>
         arr.findIndex(x => x._id === m._id) === i
       );
       setReplies(combined.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)));
@@ -408,6 +441,7 @@ const openThread = async (msg) => {
       setLoadingThread(false);
     }
   };
+
   const handleReply = async () => {
     if (!replyText.trim() || !selected) return;
     setSending(true);
@@ -438,27 +472,21 @@ const openThread = async (msg) => {
             </p>
           </div>
         </div>
-
         <div style={{
-          background: '#fff', border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)', padding: 20, marginBottom: 16,
-          minHeight: 300, maxHeight: 400, overflowY: 'auto',
+          background: '#fff', border: '1px solid var(--border)', borderRadius: 'var(--radius)',
+          padding: 20, marginBottom: 16, minHeight: 300, maxHeight: 400, overflowY: 'auto',
           display: 'flex', flexDirection: 'column', gap: 12,
         }}>
           {loadingThread ? <Spinner /> : replies.map((msg, i) => {
             const isMe = msg.sender?._id === user?._id;
             return (
-              <div key={msg._id || i} style={{
-                display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row',
-                gap: 10, alignItems: 'flex-end',
-              }}>
+              <div key={msg._id || i} style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', gap: 10, alignItems: 'flex-end' }}>
                 <Avatar name={msg.sender?.fullname || '?'} size={32} />
                 <div style={{
                   maxWidth: '70%', padding: '10px 14px',
                   borderRadius: isMe ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                   background: isMe ? 'var(--green)' : 'var(--bg)',
-                  color: isMe ? '#fff' : 'var(--text)',
-                  fontSize: '0.9rem',
+                  color: isMe ? '#fff' : 'var(--text)', fontSize: '0.9rem',
                 }}>
                   <div>{msg.content}</div>
                   <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 4 }}>
@@ -469,21 +497,14 @@ const openThread = async (msg) => {
             );
           })}
         </div>
-
         <div style={{ display: 'flex', gap: 10 }}>
-          <input
-            className="form-input"
+          <input className="form-input"
             placeholder={t.lang === 'en' ? 'Type your reply...' : 'Votre réponse...'}
             value={replyText}
             onChange={e => setReplyText(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleReply()}
-            style={{ flex: 1 }}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={handleReply}
-            disabled={sending || !replyText.trim()}
-          >
+            style={{ flex: 1 }} />
+          <button className="btn btn-primary" onClick={handleReply} disabled={sending || !replyText.trim()}>
             {sending ? '...' : (t.lang === 'en' ? '📤 Send' : '📤 Envoyer')}
           </button>
         </div>
@@ -498,7 +519,8 @@ const openThread = async (msg) => {
         <p className="text-muted">{d.messagesDesc}</p>
       </div>
       {loading ? <Spinner /> : messages.length === 0 ? (
-        <EmptyState icon="✉️" title={d.noMessages} desc="Contactez un propriétaire pour démarrer une conversation." />
+        <EmptyState icon="✉️" title={d.noMessages}
+          desc={t.lang === 'en' ? 'Contact a landlord to start a conversation.' : 'Contactez un propriétaire pour démarrer une conversation.'} />
       ) : messages.map(m => {
         const other = m.sender?._id === user?._id ? m.recipient : m.sender;
         return (
@@ -510,16 +532,14 @@ const openThread = async (msg) => {
             <Avatar name={other?.fullname || '?'} size={44} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>{other?.fullname}</div>
-              <div style={{ fontSize: '0.82rem', color: 'var(--green)', marginBottom: 2 }}>
-                🏠 {m.property?.title}
-              </div>
+              <div style={{ fontSize: '0.82rem', color: 'var(--green)', marginBottom: 2 }}>🏠 {m.property?.title}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {m.content}
               </div>
             </div>
             <div style={{ flexShrink: 0, textAlign: 'right' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                {new Date(m.createdAt).toLocaleDateString()}
+                {new Date(m.createdAt).toLocaleDateString(t.lang === 'fr' ? 'fr-FR' : 'en-US')}
               </div>
               {!m.isRead && (
                 <span style={{ background: 'var(--green)', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700 }}>
@@ -536,6 +556,7 @@ const openThread = async (msg) => {
     </>
   );
 }
+
 // ── Main Dashboard ────────────────────────────────────────
 export default function DashboardPage() {
   const { user, t, setShowAuth, setShowAddListing } = useApp();
@@ -558,12 +579,11 @@ export default function DashboardPage() {
   }
 
   const isLandlord = user.role === 'landlord';
- const isAdmin = user.role === 'admin';
-//console.log('DEBUG user:', user, 'isAdmin:', isAdmin, 'role:', user.role);
+  const isAdmin = user.role === 'admin';
 
   const navItems = isAdmin ? [
     { id: 'overview', icon: '📊', label: d.overview },
-    { id: 'admin',    icon: '🛡️', label: 'Admin Panel' },
+    { id: 'admin',    icon: '🛡️', label: d.adminPanel },
     { id: 'messages', icon: '✉️', label: d.messages },
     { id: 'profile',  icon: '👤', label: d.profile },
   ] : isLandlord ? [
@@ -586,15 +606,12 @@ export default function DashboardPage() {
   return (
     <>
       <div className="dash-layout">
-        {/* Sidebar */}
         <div className="dash-sidebar">
           <div className="dash-user">
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Avatar name={user.fullname} size={40} />
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>
-                  {user.fullname.split(' ')[0]}
-                </div>
+                <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{user.fullname.split(' ')[0]}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                   {isAdmin ? '🛡️ Admin' : isLandlord ? '🔑 ' + t.auth.landlord : '🏠 ' + t.auth.tenant}
                 </div>
@@ -622,13 +639,12 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Content */}
         <div className="dash-content">
           {activeTab === 'overview' && (
             <div className="dash-header">
               <h2>{d.greeting}, {user.fullname.split(' ')[0]}! 👋</h2>
               <p className="text-muted">
-                {new Date().toLocaleDateString('fr-FR', {
+                {new Date().toLocaleDateString(t.lang === 'fr' ? 'fr-FR' : 'en-US', {
                   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
                 })}
               </p>

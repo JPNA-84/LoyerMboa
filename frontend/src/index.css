@@ -100,7 +100,7 @@ img { max-width: 100%; }
 .prop-badge { position: absolute; top: 10px; left: 10px; background: var(--green); color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; font-family: 'Syne', sans-serif; }
 .prop-fav-btn { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; background: rgba(255,255,255,0.92); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: none; transition: all .2s; font-size: 1rem; }
 .prop-fav-btn:hover { transform: scale(1.15); }
-.prop-verified-badge { position: absolute; bottom: 10px; right: 10px; background: rgba(26,122,74,0.92); color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; }
+.prop-verified-badge { position: absolute; top: 8px; left: 8px; background: rgba(26,122,74,0.85); color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 0.6rem; display: flex; align-items: center; gap: 2px; }
 .prop-body { padding: 14px 16px; }
 .prop-price { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 800; color: var(--green); margin-bottom: 4px; }
 .prop-price span { font-size: 0.8rem; color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-weight: 400; }
