@@ -37,7 +37,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <span>© 2024 LoyerMboa. {f.rights}</span>
+          <span>©  LoyerMboa. {f.rights}</span>
           <span>{f.made}</span>
         </div>
       </div>
