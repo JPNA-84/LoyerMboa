@@ -13,7 +13,7 @@ const { validate } = require('../middleware/error');
 const router = express.Router();
 
 // ── MULTER (file uploads) ─────────────────────────────────
-const multer = require('multer');
+
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 
