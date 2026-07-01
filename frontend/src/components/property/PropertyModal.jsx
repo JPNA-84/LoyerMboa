@@ -22,11 +22,11 @@ function ImageGallery({ images, propertyType, status, bgIdx, t }) {
     }}>
       {imgs.length > 0 ? (
         <>
-          <img
-            <img src={getImageUrl(imgs[imgIdx])} alt={`photo ${imgIdx + 1}`} />
-            alt={`photo ${imgIdx + 1}`}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
+         <img
+  src={getImageUrl(imgs[imgIdx])}
+  alt={`photo ${imgIdx + 1}`}
+  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+/>
 
           {/* Prev button */}
           {imgs.length > 1 && imgIdx > 0 && (
@@ -93,17 +93,17 @@ function ImageGallery({ images, propertyType, status, bgIdx, t }) {
             }}>
               {imgs.map((img, i) => (
                 <img key={i}
-                  <img key={i} src={getImageUrl(img)} alt="" />
-                  alt=""
-                  onClick={() => setImgIdx(i)}
-                  style={{
-                    width: 44, height: 32, objectFit: 'cover',
-                    borderRadius: 4, cursor: 'pointer',
-                    border: i === imgIdx ? '2px solid #fff' : '2px solid transparent',
-                    opacity: i === imgIdx ? 1 : 0.7,
-                    transition: 'all .2s',
-                  }}
-                />
+  src={getImageUrl(img)}
+  alt=""
+  onClick={() => setImgIdx(i)}
+  style={{
+    width: 44, height: 32, objectFit: 'cover',
+    borderRadius: 4, cursor: 'pointer',
+    border: i === imgIdx ? '2px solid #fff' : '2px solid transparent',
+    opacity: i === imgIdx ? 1 : 0.7,
+    transition: 'all .2s',
+  }}
+/>
               ))}
             </div>
           )}
