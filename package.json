@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "LoyerMboa – Trouvez votre chez-vous / Find your home",
   "private": true,
-  "workspaces": ["backend", "frontend"],
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "npm run dev --workspace=backend",
@@ -13,5 +16,10 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "cloudinary": "^1.41.3",
+    "multer": "^2.2.0",
+    "multer-storage-cloudinary": "^4.0.0"
   }
 }
