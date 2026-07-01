@@ -118,10 +118,10 @@ exports.createProperty = async (req, res, next) => {
   try {
     const propertyData = { ...req.body, landlord: req.user._id };
 
-    // Handle uploaded images
-    if (req.files && req.files.length > 0) {
-      propertyData.images = req.files.map(f => `/uploads/${f.filename}`);
-    }
+   // Handle uploaded images
+if (req.files && req.files.length > 0) {
+  propertyData.images = req.files.map(f => `/uploads/${f.filename}`);
+}
 
     const property = await Property.create(propertyData);
     res.status(201).json({ success: true, data: property });
