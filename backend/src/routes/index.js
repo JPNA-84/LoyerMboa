@@ -13,24 +13,28 @@ const { validate } = require('../middleware/error');
 const router = express.Router();
 
 // ── MULTER (file uploads) ─────────────────────────────────
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, process.env.UPLOAD_PATH || './uploads'),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const upload = multer({
-  storage,
-  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype);
-    cb(null, ext && mime);
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'loyermboa',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
   },
 });
 
+const upload = multer({
+  storage,
+  limits: { fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5 * 1024 * 1024 },
+});
 // ── RATE LIMITS ──────────────────────────────────────────
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many auth attempts' });
 const generalLimiter = rateLimit({ windowMs: 1 * 60 * 1000, max: 100 });
