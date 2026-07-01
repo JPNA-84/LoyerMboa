@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Stars, Divider, Chip, Avatar } from '../common/UI';
 import { useReviews } from '../../hooks/useData';
 import { messageAPI } from '../../utils/api';
+import { getImageUrl } from '../../utils/api'; // adjust relative path as needed
 
 const BG_COLORS = ['#E8F5EE','#FEF3DC','#EEF2FF','#FFF1F0','#E0F7F4','#FDF4FF'];
 const EMOJIS = { Appartement: '🏢', Studio: '🏠', Villa: '🏡', Chambre: '🛏️', Duplex: '🏰', Bureau: '🏗️' };
@@ -22,7 +23,7 @@ function ImageGallery({ images, propertyType, status, bgIdx, t }) {
       {imgs.length > 0 ? (
         <>
           <img
-            src={`http://localhost:5000${imgs[imgIdx]}`}
+            <img src={getImageUrl(imgs[imgIdx])} alt={`photo ${imgIdx + 1}`} />
             alt={`photo ${imgIdx + 1}`}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -92,7 +93,7 @@ function ImageGallery({ images, propertyType, status, bgIdx, t }) {
             }}>
               {imgs.map((img, i) => (
                 <img key={i}
-                  src={`http://localhost:5000${img}`}
+                  <img key={i} src={getImageUrl(img)} alt="" />
                   alt=""
                   onClick={() => setImgIdx(i)}
                   style={{
