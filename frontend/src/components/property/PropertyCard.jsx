@@ -22,7 +22,7 @@ export default function PropertyCard({ property, onClick }) {
       {/* Image */}
       <div className="prop-img">
         {p.images && p.images.length > 0 ? (
-          <img src={`http://localhost:5000${p.images[0]}`} alt={p.title} />
+          <img src={getImageUrl(p.images[0])} alt={p.title} />
         ) : (
           <div className="prop-img-bg" style={{ background: BG_COLORS[bgIdx] }}>
             <span>{emoji}</span>
